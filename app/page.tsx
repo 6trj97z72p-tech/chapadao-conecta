@@ -29,16 +29,47 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            ['🚨', 'Alertas de segurança', 'Veja e compartilhe alertas importantes da nossa região.'],
-            ['🐾', 'Pets desaparecidos', 'Ajude a encontrar animais perdidos na comunidade.'],
-            ['👤', 'Pessoas desaparecidas', 'Compartilhe informações que podem ajudar.'],
-            ['☎️', 'Riscos e emergências', 'Informações sobre riscos, clima e situações de emergência.'],
-            ['📢', 'Avisos comunitários', 'Informes, eventos e comunicados úteis para moradores.'],
-            ['✅', 'Confirmar informações', 'Ajude a manter nossa comunidade mais segura.'],
+            [
+              '🚨',
+              'Alertas de segurança',
+              'Veja e compartilhe alertas importantes da nossa região.',
+            ],
+            [
+              '🐾',
+              'Pets desaparecidos',
+              'Ajude a encontrar animais perdidos na comunidade.',
+            ],
+            [
+              '👤',
+              'Pessoas desaparecidas',
+              'Compartilhe informações que podem ajudar.',
+            ],
+            [
+              '☎️',
+              'Riscos e emergências',
+              'Informações sobre riscos e situações de emergência.',
+            ],
+            [
+              '📢',
+              'Avisos comunitários',
+              'Informes e comunicados úteis para moradores.',
+            ],
+            [
+              '✅',
+              'Confirmar informações',
+              'Ajude a manter nossa comunidade mais segura.',
+            ],
           ].map(([icon, title, text]) => (
-            <div key={title} className="bg-white rounded-3xl p-6 shadow border">
+            <div
+              key={title}
+              className="bg-white rounded-3xl p-6 shadow border"
+            >
               <div className="text-5xl mb-4">{icon}</div>
-              <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
+
+              <h3 className="text-2xl font-bold text-gray-900">
+                {title}
+              </h3>
+
               <p className="text-gray-600 mt-2">{text}</p>
             </div>
           ))}
@@ -72,11 +103,13 @@ export default function Home() {
           </p>
 
           <input
-            type="email"
+            type="text"
+            inputMode="email"
+            autoComplete="email"
             placeholder="Digite seu email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-3"
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-3 text-black bg-white"
           />
 
           <input
@@ -84,12 +117,26 @@ export default function Home() {
             placeholder="Digite seu CEP"
             value={cep}
             onChange={(e) => setCep(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4"
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
           />
 
           <button
             onClick={async () => {
-              const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+              const emailLimpo = email.trim()
+
+              if (
+                emailLimpo === '' ||
+                !emailLimpo.includes('@') ||
+                emailLimpo.length < 5
+              ) {
+                alert('Digite um email válido')
+                return
+              }
+
+              const response = await fetch(
+                `https://viacep.com.br/ws/${cep}/json/`
+              )
+
               const data = await response.json()
 
               const bairrosPermitidos = [
@@ -100,11 +147,12 @@ export default function Home() {
                 'Ricardo de Albuquerque',
               ]
 
-              const permitido = bairrosPermitidos.includes(data.bairro)
+              const permitido =
+                bairrosPermitidos.includes(data.bairro)
 
               await supabase.from('usuarios').insert([
                 {
-                  email,
+                  email: emailLimpo,
                   cep,
                   bairro: data.bairro,
                   permitido,
@@ -114,7 +162,9 @@ export default function Home() {
               if (permitido) {
                 setLogado(true)
               } else {
-                alert('Sua região ainda não está disponível na plataforma.')
+                alert(
+                  'Sua região ainda não está disponível na plataforma.'
+                )
               }
             }}
             className="w-full bg-green-700 text-white rounded-2xl p-4 font-bold"
