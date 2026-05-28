@@ -254,13 +254,14 @@ export default function Home() {
   }
 
   if (logado) {
-    return (
-  <main
-    <h1 className="text-4xl font-bold text-green-900 text-center">
-  Chapadão Conecta
-</h1>
+  return (
+    <main className="min-h-screen bg-gray-50 p-6">
 
-        <p className="text-center text-gray-600 mt-2 mb-8">
+      <h1 className="text-4xl font-bold text-green-900 text-center">
+        Chapadão Conecta
+      </h1>
+
+      <p className="text-center text-gray-600 mt-2 mb-8">
           Informação que aproxima. Comunidade que protege.
         </p>
 
