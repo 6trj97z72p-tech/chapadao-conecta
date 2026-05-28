@@ -255,8 +255,11 @@ export default function Home() {
 
   if (logado) {
     return (
-      <main className="min-h-screen bg-gray-50 p-6">
-        <h1 className="text-4xl font-bold text-green-900 text-center">
+      <main
+      className="min-h-screen p-6 bg-cover bg-center"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)), url('/images/fundo1.png')">
           Chapadão Conecta
         </h1>
 
