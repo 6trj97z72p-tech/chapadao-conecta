@@ -28,31 +28,55 @@ export default function Home() {
     })
   }
 
-  async function carregarAlertas() {
-  const { data } = await supabase
-    .from('alertas')
-    .select('*')
-    .gte('created_at', limite24h())
-    .order('created_at', { ascending: true })
+  function tocarAlarme() {
+    const AudioContextClass =
+      window.AudioContext || (window as any).webkitAudioContext
 
-  const agrupados: any[] = []
+    const audioContext = new AudioContextClass()
 
-  ;(data || []).forEach((alerta) => {
-    const existente = agrupados.find(
-      (item) =>
-        item.bairro === alerta.bairro &&
-        item.tipo_alerta === alerta.tipo_alerta
-    )
+    for (let i = 0; i < 3; i++) {
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
 
-    if (existente) {
-      existente.verdade += alerta.verdade
-      existente.boato += alerta.boato
-    } else {
-      agrupados.push({ ...alerta })
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+
+      oscillator.frequency.value = 880
+      gainNode.gain.value = 0.12
+
+      oscillator.start(audioContext.currentTime + i * 0.35)
+      oscillator.stop(audioContext.currentTime + i * 0.35 + 0.18)
     }
-  })
+  }
 
-  setAlertas(agrupados.reverse())
+  async function carregarAlertas() {
+    const { data } = await supabase
+      .from('alertas')
+      .select('*')
+      .gte('created_at', limite24h())
+      .order('created_at', { ascending: true })
+
+    const agrupados: any[] = []
+
+    ;(data || []).forEach((alerta) => {
+      const existente = agrupados.find(
+        (item) =>
+          item.bairro === alerta.bairro &&
+          item.tipo_alerta === alerta.tipo_alerta
+      )
+
+      if (existente) {
+        existente.verdade += alerta.verdade
+        existente.boato += alerta.boato
+      } else {
+        agrupados.push({ ...alerta })
+      }
+    })
+
+    const resultado = agrupados.reverse()
+    setAlertas(resultado)
+
+    return resultado
   }
 
   async function publicarAlerta() {
@@ -79,7 +103,9 @@ export default function Home() {
         })
         .eq('id', alertaExistente.id)
 
-      alert('Alerta semelhante já existia. Sua informação foi registrada como Verdade.')
+      alert(
+        'Alerta semelhante já existia. Sua informação foi registrada como Verdade.'
+      )
     } else {
       await supabase.from('alertas').insert([
         {
@@ -170,7 +196,9 @@ export default function Home() {
             <option value="Assalto">Assalto</option>
             <option value="Narcotráfico">Narcotráfico</option>
             <option value="Arrastão">Arrastão</option>
-            <option value="Confronto entre Facções">Confronto entre Facções</option>
+            <option value="Confronto entre Facções">
+              Confronto entre Facções
+            </option>
           </select>
 
           <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -202,10 +230,6 @@ export default function Home() {
           >
             Enviar alerta
           </button>
-
-          <p className="text-xs text-gray-500 text-center mt-4">
-            Alertas iguais no mesmo bairro e tipo, dentro de 24h, serão agrupados.
-          </p>
         </div>
 
         <div className="space-y-4">
@@ -216,7 +240,10 @@ export default function Home() {
           )}
 
           {alertas.map((alerta) => (
-            <div key={alerta.id} className="bg-white rounded-3xl shadow border p-5">
+            <div
+              key={alerta.id}
+              className="bg-white rounded-3xl shadow border p-5"
+            >
               <h2 className="text-2xl font-bold text-red-700">
                 🚨 {alerta.tipo_alerta} — {alerta.bairro}
               </h2>
@@ -254,14 +281,13 @@ export default function Home() {
   }
 
   if (logado) {
-  return (
-    <main className="min-h-screen bg-gray-50 p-6">
+    return (
+      <main className="min-h-screen bg-gray-50 p-6">
+        <h1 className="text-4xl font-bold text-green-900 text-center">
+          Chapadão Conecta
+        </h1>
 
-      <h1 className="text-4xl font-bold text-green-900 text-center">
-        Chapadão Conecta
-      </h1>
-
-      <p className="text-center text-gray-600 mt-2 mb-8">
+        <p className="text-center text-gray-600 mt-2 mb-8">
           Informação que aproxima. Comunidade que protege.
         </p>
 
@@ -275,12 +301,36 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            ['🚨', 'Alertas de segurança', 'Veja e compartilhe alertas importantes da nossa região.'],
-            ['🐾', 'Pets desaparecidos', 'Ajude a encontrar animais perdidos na comunidade.'],
-            ['👤', 'Pessoas desaparecidas', 'Compartilhe informações que podem ajudar.'],
-            ['☎️', 'Riscos e emergências', 'Informações sobre riscos e situações de emergência.'],
-            ['📢', 'Avisos comunitários', 'Informes, eventos e comunicados úteis para moradores.'],
-            ['✅', 'Confirmar informações', 'Ajude a manter nossa comunidade mais segura.'],
+            [
+              '🚨',
+              'Alertas de segurança',
+              'Veja e compartilhe alertas importantes da nossa região.',
+            ],
+            [
+              '🐾',
+              'Pets desaparecidos',
+              'Ajude a encontrar animais perdidos na comunidade.',
+            ],
+            [
+              '👤',
+              'Pessoas desaparecidas',
+              'Compartilhe informações que podem ajudar.',
+            ],
+            [
+              '☎️',
+              'Riscos e emergências',
+              'Informações sobre riscos e situações de emergência.',
+            ],
+            [
+              '📢',
+              'Avisos comunitários',
+              'Informes, eventos e comunicados úteis para moradores.',
+            ],
+            [
+              '✅',
+              'Confirmar informações',
+              'Ajude a manter nossa comunidade mais segura.',
+            ],
           ].map(([icon, title, text]) => (
             <div
               key={title}
@@ -298,6 +348,49 @@ export default function Home() {
             </div>
           ))}
         </div>
+
+        {alertas.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-2xl font-bold text-red-700 mb-4">
+              🚨 Alertas de segurança ativos
+            </h2>
+
+            <div className="space-y-4">
+              {alertas.slice(0, 3).map((alerta) => (
+                <div
+                  key={alerta.id}
+                  className="bg-white rounded-3xl shadow border p-5"
+                >
+                  <h3 className="text-xl font-bold text-red-700">
+                    🚨 {alerta.tipo_alerta} — {alerta.bairro}
+                  </h3>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    🕒 {formatarData(alerta.created_at)}
+                  </p>
+
+                  <p className="text-sm text-gray-500 mt-1">
+                    📍 {alerta.local_descricao}
+                  </p>
+
+                  <div className="flex gap-6 mt-3">
+                    <span className="font-bold text-green-700">
+                      👍 Verdade {alerta.verdade}
+                    </span>
+
+                    <span className="font-bold text-red-700">
+                      👎 Boato {alerta.boato}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-xs text-gray-500 text-center mt-4">
+              Para validar ou criar novos alertas, acesse o menu Alertas de segurança.
+            </p>
+          </div>
+        )}
 
         <div className="mt-8 bg-green-50 border border-green-200 rounded-3xl p-5 text-green-800">
           📍 Região verificada — você está conectado à comunidade do Complexo do Chapadão e entorno.
@@ -363,7 +456,10 @@ export default function Home() {
                 return
               }
 
-              const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+              const response = await fetch(
+                `https://viacep.com.br/ws/${cep}/json/`
+              )
+
               const data = await response.json()
 
               const bairrosPermitidos = [
@@ -388,7 +484,12 @@ export default function Home() {
               if (permitido) {
                 setEmail(emailLimpo)
                 setBairro(data.bairro)
-                await carregarAlertas()
+                const alertasCarregados = await carregarAlertas()
+
+                if (alertasCarregados.length > 0) {
+                  tocarAlarme()
+                }
+
                 setLogado(true)
               } else {
                 alert('Sua região ainda não está disponível na plataforma.')
