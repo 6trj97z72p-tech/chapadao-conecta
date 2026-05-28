@@ -13,7 +13,16 @@ export default function Home() {
   const [tipoAlerta, setTipoAlerta] = useState('')
   const [localDescricao, setLocalDescricao] = useState('')
   const [descricao, setDescricao] = useState('')
+  const [alertas, setAlertas] = useState<any[]>([])
 
+  async function carregarAlertas() {
+  const { data } = await supabase
+    .from('alertas')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  setAlertas(data || [])
+}
   async function publicarAlerta() {
     if (!tipoAlerta || !localDescricao || !descricao) {
       alert('Preencha todos os campos do alerta.')
@@ -262,6 +271,7 @@ export default function Home() {
               if (permitido) {
                 setEmail(emailLimpo)
                 setBairro(data.bairro)
+                await carregarAlertas()
                 setLogado(true)
               } else {
                 alert('Sua região ainda não está disponível na plataforma.')
