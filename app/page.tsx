@@ -44,24 +44,21 @@ export default function Home() {
       return
     }
 
-    const { data: alertaExistente } = await supabase
+    const { data: alertasExistentes } = await supabase
       .from('alertas')
       .select('*')
       .eq('bairro', bairro)
       .eq('tipo_alerta', tipoAlerta)
       .gte('created_at', limite24h())
-      .limit(1)
-      .single()
+      .order('created_at', { ascending: true })
+
+    const alertaExistente = alertasExistentes?.[0]
 
     if (alertaExistente) {
-      const novoValor = alertaExistente.verdade + 1
-      const saldo = novoValor - alertaExistente.boato
-
       await supabase
         .from('alertas')
         .update({
-          verdade: novoValor,
-          status: saldo >= 3 ? 'confirmado' : alertaExistente.status,
+          verdade: alertaExistente.verdade + 1,
         })
         .eq('id', alertaExistente.id)
 
@@ -91,14 +88,10 @@ export default function Home() {
   }
 
   async function votarVerdade(alerta: any) {
-    const novoValor = alerta.verdade + 1
-    const saldo = novoValor - alerta.boato
-
     await supabase
       .from('alertas')
       .update({
-        verdade: novoValor,
-        status: saldo >= 3 ? 'confirmado' : alerta.status,
+        verdade: alerta.verdade + 1,
       })
       .eq('id', alerta.id)
 
@@ -106,14 +99,10 @@ export default function Home() {
   }
 
   async function votarBoato(alerta: any) {
-    const novoValor = alerta.boato + 1
-    const saldo = alerta.verdade - novoValor
-
     await supabase
       .from('alertas')
       .update({
-        boato: novoValor,
-        status: saldo <= -3 ? 'boato' : alerta.status,
+        boato: alerta.boato + 1,
       })
       .eq('id', alerta.id)
 
@@ -164,9 +153,7 @@ export default function Home() {
             <option value="Assalto">Assalto</option>
             <option value="Narcotráfico">Narcotráfico</option>
             <option value="Arrastão">Arrastão</option>
-            <option value="Confronto entre Facções">
-              Confronto entre Facções
-            </option>
+            <option value="Confronto entre Facções">Confronto entre Facções</option>
           </select>
 
           <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -200,7 +187,7 @@ export default function Home() {
           </button>
 
           <p className="text-xs text-gray-500 text-center mt-4">
-            Alertas semelhantes no mesmo bairro e tipo, dentro de 24h, serão agrupados.
+            Alertas iguais no mesmo bairro e tipo, dentro de 24h, serão agrupados.
           </p>
         </div>
 
@@ -211,68 +198,39 @@ export default function Home() {
             </p>
           )}
 
-          {alertas.map((alerta) => {
-            const saldo = alerta.verdade - alerta.boato
+          {alertas.map((alerta) => (
+            <div key={alerta.id} className="bg-white rounded-3xl shadow border p-5">
+              <h2 className="text-2xl font-bold text-red-700">
+                🚨 {alerta.tipo_alerta} — {alerta.bairro}
+              </h2>
 
-            return (
-              <div
-                key={alerta.id}
-                className="bg-white rounded-3xl shadow border p-5"
-              >
-                <h2 className="text-2xl font-bold text-red-700">
-                  🚨 {alerta.tipo_alerta} — {alerta.bairro}
-                </h2>
+              <p className="text-sm text-gray-500 mt-2">
+                🕒 Criado em {formatarData(alerta.created_at)}
+              </p>
 
-                <p className="text-sm text-gray-500 mt-2">
-                  🕒 Criado em {formatarData(alerta.created_at)}
-                </p>
+              <p className="text-sm text-gray-500 mt-1">
+                📍 {alerta.local_descricao}
+              </p>
 
-                <p className="text-sm text-gray-500 mt-1">
-                  📍 {alerta.local_descricao}
-                </p>
+              <p className="text-gray-700 mt-4">{alerta.descricao}</p>
 
-                <p className="text-gray-700 mt-4">{alerta.descricao}</p>
+              <div className="flex gap-6 mt-5">
+                <button
+                  onClick={() => votarVerdade(alerta)}
+                  className="font-bold text-green-700"
+                >
+                  👍 Verdade {alerta.verdade}
+                </button>
 
-                <div className="flex gap-6 mt-5">
-                  <button
-                    onClick={() => votarVerdade(alerta)}
-                    className="font-bold text-green-700"
-                  >
-                    👍 Verdade {alerta.verdade}
-                  </button>
-
-                  <button
-                    onClick={() => votarBoato(alerta)}
-                    className="font-bold text-red-700"
-                  >
-                    👎 Boato {alerta.boato}
-                  </button>
-                </div>
-
-                <p className="text-sm text-gray-500 mt-3">
-                  Saldo comunitário: {saldo}
-                </p>
-
-                {saldo >= 3 && (
-                  <p className="text-green-700 font-bold mt-4">
-                    ✅ Confirmado pela comunidade
-                  </p>
-                )}
-
-                {saldo <= -3 && (
-                  <p className="text-red-700 font-bold mt-4">
-                    ❌ Marcado como boato
-                  </p>
-                )}
-
-                {saldo > -3 && saldo < 3 && (
-                  <p className="text-yellow-700 font-bold mt-4">
-                    ⏳ Aguardando validação comunitária
-                  </p>
-                )}
+                <button
+                  onClick={() => votarBoato(alerta)}
+                  className="font-bold text-red-700"
+                >
+                  👎 Boato {alerta.boato}
+                </button>
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
       </main>
     )
@@ -339,7 +297,7 @@ export default function Home() {
       <section
         className="min-h-screen flex items-center justify-center p-6 bg-repeat"
         style={{
-          backgroundImage: "url('/images/fundo2.png')",
+          backgroundImage: "url('/images/fundo.png')",
           backgroundSize: '600px',
         }}
       >
@@ -387,10 +345,7 @@ export default function Home() {
                 return
               }
 
-              const response = await fetch(
-                `https://viacep.com.br/ws/${cep}/json/`
-              )
-
+              const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
               const data = await response.json()
 
               const bairrosPermitidos = [
