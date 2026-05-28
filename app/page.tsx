@@ -29,13 +29,30 @@ export default function Home() {
   }
 
   async function carregarAlertas() {
-    const { data } = await supabase
-      .from('alertas')
-      .select('*')
-      .gte('created_at', limite24h())
-      .order('created_at', { ascending: false })
+  const { data } = await supabase
+    .from('alertas')
+    .select('*')
+    .gte('created_at', limite24h())
+    .order('created_at', { ascending: true })
 
-    setAlertas(data || [])
+  const agrupados: any[] = []
+
+  ;(data || []).forEach((alerta) => {
+    const existente = agrupados.find(
+      (item) =>
+        item.bairro === alerta.bairro &&
+        item.tipo_alerta === alerta.tipo_alerta
+    )
+
+    if (existente) {
+      existente.verdade += alerta.verdade
+      existente.boato += alerta.boato
+    } else {
+      agrupados.push({ ...alerta })
+    }
+  })
+
+  setAlertas(agrupados.reverse())
   }
 
   async function publicarAlerta() {
