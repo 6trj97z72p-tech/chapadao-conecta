@@ -186,7 +186,10 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <section   className="min-h-screen flex items-center justify-center p-6 bg-contain bg-center bg-no-repeat bg-center"   style={{     backgroundImage: "url('/images/fundo.png')",   }} >
+      <section   className="min-h-screen flex items-center justify-center p-6 bg-repeat"
+  style={{
+    backgroundImage: "url('/images/fundo.png')",
+    backgroundSize: '600px',   }} >
         <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-7">
           <p className="text-sm font-semibold text-green-700 mb-2 text-center">
             Comunidade hiperlocal
