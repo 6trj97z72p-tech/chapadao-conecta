@@ -255,13 +255,13 @@ export default function Home() {
 
   if (logado) {
     return (
-      <main
-      className="min-h-screen p-6 bg-cover bg-center"
-      style={{
-        backgroundImage:
-          "linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)), url('/images/fundo1.png')">
-          Chapadão Conecta
-        </h1>
+  <main
+    className="min-h-screen p-6 bg-cover bg-center"
+    style={{
+      backgroundImage:
+        "linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)), url('/images/fundo1.png')",
+    }}
+  >
 
         <p className="text-center text-gray-600 mt-2 mb-8">
           Informação que aproxima. Comunidade que protege.
