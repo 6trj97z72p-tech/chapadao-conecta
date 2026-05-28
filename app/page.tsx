@@ -159,13 +159,41 @@ export default function Home() {
               <p className="text-gray-700 mt-4">{alerta.descricao}</p>
 
               <div className="flex gap-6 mt-5">
-                <button className="font-bold text-green-700">
-                  👍 Verdade {alerta.verdade}
-                </button>
+                <button
+  onClick={async () => {
+    const novoValor = alerta.verdade + 1
+    await supabase
+      .from('alertas')
+      .update({
+        verdade: novoValor,
+        status: novoValor >= 3 ? 'confirmado' : alerta.status,
+      })
+      .eq('id', alerta.id)
 
-                <button className="font-bold text-red-700">
-                  👎 Boato {alerta.boato}
-                </button>
+    await carregarAlertas()
+  }}
+  className="font-bold text-green-700"
+>
+  👍 Verdade {alerta.verdade}
+</button>
+
+<button
+  onClick={async () => {
+    const novoValor = alerta.boato + 1
+    await supabase
+      .from('alertas')
+      .update({
+        boato: novoValor,
+        status: novoValor >= 3 ? 'boato' : alerta.status,
+      })
+      .eq('id', alerta.id)
+
+    await carregarAlertas()
+  }}
+  className="font-bold text-red-700"
+>
+  👎 Boato {alerta.boato}
+</button>
               </div>
 
               {alerta.verdade >= 3 && (
