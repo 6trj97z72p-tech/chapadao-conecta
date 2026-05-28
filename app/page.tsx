@@ -128,7 +128,7 @@ export default function Home() {
 
   if (logado && tela === 'alertas') {
     return (
-      <main className="min-h-screen bg-gray-50 p-6">
+      <main className="min-h-screen p-6 bg-gradient-to-br from-green-900 via-green-700 to-green-500">
         <button
           onClick={() => setTela('home')}
           className="mb-6 text-green-800 font-bold"
