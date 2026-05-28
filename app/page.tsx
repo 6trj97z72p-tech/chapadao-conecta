@@ -16,13 +16,14 @@ export default function Home() {
   const [alertas, setAlertas] = useState<any[]>([])
 
   async function carregarAlertas() {
-  const { data } = await supabase
-    .from('alertas')
-    .select('*')
-    .order('created_at', { ascending: false })
+    const { data } = await supabase
+      .from('alertas')
+      .select('*')
+      .order('created_at', { ascending: false })
 
-  setAlertas(data || [])
-}
+    setAlertas(data || [])
+  }
+
   async function publicarAlerta() {
     if (!tipoAlerta || !localDescricao || !descricao) {
       alert('Preencha todos os campos do alerta.')
@@ -48,7 +49,7 @@ export default function Home() {
     setTipoAlerta('')
     setLocalDescricao('')
     setDescricao('')
-    setTela('home')
+    await carregarAlertas()
   }
 
   if (logado && tela === 'alertas') {
@@ -62,14 +63,14 @@ export default function Home() {
         </button>
 
         <h1 className="text-3xl font-bold text-gray-900">
-          🚨 Novo alerta de segurança
+          🚨 Alertas de segurança
         </h1>
 
         <p className="text-gray-600 mt-2 mb-6">
-          Informe o tipo de ocorrência e uma descrição do local.
+          Crie alertas e acompanhe validações da comunidade.
         </p>
 
-        <div className="bg-white rounded-3xl shadow border p-6">
+        <div className="bg-white rounded-3xl shadow border p-6 mb-8">
           <label className="block text-sm font-bold text-gray-700 mb-2">
             Bairro
           </label>
@@ -134,6 +135,53 @@ export default function Home() {
             O alerta ficará pendente até receber 3 marcações como Verdade.
           </p>
         </div>
+
+        <div className="space-y-4">
+          {alertas.length === 0 && (
+            <p className="text-gray-500 text-center">
+              Ainda não há alertas cadastrados.
+            </p>
+          )}
+
+          {alertas.map((alerta) => (
+            <div
+              key={alerta.id}
+              className="bg-white rounded-3xl shadow border p-5"
+            >
+              <h2 className="text-2xl font-bold text-red-700">
+                🚨 {alerta.tipo_alerta} — {alerta.bairro}
+              </h2>
+
+              <p className="text-sm text-gray-500 mt-1">
+                📍 {alerta.local_descricao}
+              </p>
+
+              <p className="text-gray-700 mt-4">{alerta.descricao}</p>
+
+              <div className="flex gap-6 mt-5">
+                <button className="font-bold text-green-700">
+                  👍 Verdade {alerta.verdade}
+                </button>
+
+                <button className="font-bold text-red-700">
+                  👎 Boato {alerta.boato}
+                </button>
+              </div>
+
+              {alerta.verdade >= 3 && (
+                <p className="text-green-700 font-bold mt-4">
+                  ✅ Confirmado pela comunidade
+                </p>
+              )}
+
+              {alerta.boato >= 3 && (
+                <p className="text-red-700 font-bold mt-4">
+                  ❌ Marcado como boato
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
       </main>
     )
   }
@@ -170,6 +218,7 @@ export default function Home() {
               key={title}
               onClick={() => {
                 if (title === 'Alertas de segurança') {
+                  carregarAlertas()
                   setTela('alertas')
                 }
               }}
@@ -195,10 +244,13 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <section   className="min-h-screen flex items-center justify-center p-6 bg-repeat"
-  style={{
-    backgroundImage: "url('/images/fundo2.png')",
-    backgroundSize: '600px',   }} >
+      <section
+        className="min-h-screen flex items-center justify-center p-6 bg-repeat"
+        style={{
+          backgroundImage: "url('/images/fundo.png')",
+          backgroundSize: '600px',
+        }}
+      >
         <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-7">
           <p className="text-sm font-semibold text-green-700 mb-2 text-center">
             Comunidade hiperlocal
