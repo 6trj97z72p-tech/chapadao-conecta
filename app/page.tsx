@@ -6,7 +6,128 @@ import { supabase } from './supabase'
 export default function Home() {
   const [email, setEmail] = useState('')
   const [cep, setCep] = useState('')
+  const [bairro, setBairro] = useState('')
   const [logado, setLogado] = useState(false)
+  const [tela, setTela] = useState('home')
+
+  const [tipoAlerta, setTipoAlerta] = useState('')
+  const [localDescricao, setLocalDescricao] = useState('')
+  const [descricao, setDescricao] = useState('')
+
+  async function publicarAlerta() {
+    if (!tipoAlerta || !localDescricao || !descricao) {
+      alert('Preencha todos os campos do alerta.')
+      return
+    }
+
+    await supabase.from('alertas').insert([
+      {
+        email,
+        bairro,
+        categoria: 'Segurança',
+        tipo_alerta: tipoAlerta,
+        local_descricao: localDescricao,
+        descricao,
+        verdade: 0,
+        boato: 0,
+        status: 'pendente',
+      },
+    ])
+
+    alert('Alerta enviado para validação comunitária.')
+
+    setTipoAlerta('')
+    setLocalDescricao('')
+    setDescricao('')
+    setTela('home')
+  }
+
+  if (logado && tela === 'alertas') {
+    return (
+      <main className="min-h-screen bg-gray-50 p-6">
+        <button
+          onClick={() => setTela('home')}
+          className="mb-6 text-green-800 font-bold"
+        >
+          ← Voltar
+        </button>
+
+        <h1 className="text-3xl font-bold text-gray-900">
+          🚨 Novo alerta de segurança
+        </h1>
+
+        <p className="text-gray-600 mt-2 mb-6">
+          Informe o tipo de ocorrência e uma descrição do local.
+        </p>
+
+        <div className="bg-white rounded-3xl shadow border p-6">
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Bairro
+          </label>
+
+          <input
+            value={bairro}
+            disabled
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-gray-100"
+          />
+
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Tipo de alerta
+          </label>
+
+          <select
+            value={tipoAlerta}
+            onChange={(e) => setTipoAlerta(e.target.value)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+          >
+            <option value="">Selecione uma opção</option>
+            <option value="Operação Policial">Operação Policial</option>
+            <option value="Tiroteio">Tiroteio</option>
+            <option value="Assalto">Assalto</option>
+            <option value="Narcotráfico">Narcotráfico</option>
+            <option value="Arrastão">Arrastão</option>
+            <option value="Confronto entre Facções">
+              Confronto entre Facções
+            </option>
+          </select>
+
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Descrição do local
+          </label>
+
+          <input
+            type="text"
+            placeholder="Ex: próximo à estação, praça, rua ou referência"
+            value={localDescricao}
+            onChange={(e) => setLocalDescricao(e.target.value)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+          />
+
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Descrição do ocorrido
+          </label>
+
+          <textarea
+            placeholder="Descreva brevemente o que está acontecendo"
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white min-h-32"
+          />
+
+          <button
+            onClick={publicarAlerta}
+            className="w-full bg-green-700 text-white rounded-2xl p-4 font-bold"
+          >
+            Enviar alerta
+          </button>
+
+          <p className="text-xs text-gray-500 text-center mt-4">
+            O alerta ficará pendente até receber 3 marcações como Verdade.
+          </p>
+        </div>
+      </main>
+    )
+  }
 
   if (logado) {
     return (
@@ -29,47 +150,24 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            [
-              '🚨',
-              'Alertas de segurança',
-              'Veja e compartilhe alertas importantes da nossa região.',
-            ],
-            [
-              '🐾',
-              'Pets desaparecidos',
-              'Ajude a encontrar animais perdidos na comunidade.',
-            ],
-            [
-              '👤',
-              'Pessoas desaparecidas',
-              'Compartilhe informações que podem ajudar.',
-            ],
-            [
-              '☎️',
-              'Riscos e emergências',
-              'Informações sobre riscos e situações de emergência.',
-            ],
-            [
-              '📢',
-              'Avisos comunitários',
-              'Informes e comunicados úteis para moradores.',
-            ],
-            [
-              '✅',
-              'Confirmar informações',
-              'Ajude a manter nossa comunidade mais segura.',
-            ],
+            ['🚨', 'Alertas de segurança', 'Veja e compartilhe alertas importantes da nossa região.'],
+            ['🐾', 'Pets desaparecidos', 'Ajude a encontrar animais perdidos na comunidade.'],
+            ['👤', 'Pessoas desaparecidas', 'Compartilhe informações que podem ajudar.'],
+            ['☎️', 'Riscos e emergências', 'Informações sobre riscos e situações de emergência.'],
+            ['📢', 'Avisos comunitários', 'Informes, eventos e comunicados úteis para moradores.'],
+            ['✅', 'Confirmar informações', 'Ajude a manter nossa comunidade mais segura.'],
           ].map(([icon, title, text]) => (
             <div
               key={title}
-              className="bg-white rounded-3xl p-6 shadow border"
+              onClick={() => {
+                if (title === 'Alertas de segurança') {
+                  setTela('alertas')
+                }
+              }}
+              className="bg-white rounded-3xl p-6 shadow border cursor-pointer"
             >
               <div className="text-5xl mb-4">{icon}</div>
-
-              <h3 className="text-2xl font-bold text-gray-900">
-                {title}
-              </h3>
-
+              <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
               <p className="text-gray-600 mt-2">{text}</p>
             </div>
           ))}
@@ -147,8 +245,7 @@ export default function Home() {
                 'Ricardo de Albuquerque',
               ]
 
-              const permitido =
-                bairrosPermitidos.includes(data.bairro)
+              const permitido = bairrosPermitidos.includes(data.bairro)
 
               await supabase.from('usuarios').insert([
                 {
@@ -160,11 +257,11 @@ export default function Home() {
               ])
 
               if (permitido) {
+                setEmail(emailLimpo)
+                setBairro(data.bairro)
                 setLogado(true)
               } else {
-                alert(
-                  'Sua região ainda não está disponível na plataforma.'
-                )
+                alert('Sua região ainda não está disponível na plataforma.')
               }
             }}
             className="w-full bg-green-700 text-white rounded-2xl p-4 font-bold"
