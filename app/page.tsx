@@ -15,10 +15,24 @@ export default function Home() {
   const [descricao, setDescricao] = useState('')
   const [alertas, setAlertas] = useState<any[]>([])
 
+  function limite24h() {
+    const data = new Date()
+    data.setHours(data.getHours() - 24)
+    return data.toISOString()
+  }
+
+  function formatarData(data: string) {
+    return new Date(data).toLocaleString('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    })
+  }
+
   async function carregarAlertas() {
     const { data } = await supabase
       .from('alertas')
       .select('*')
+      .gte('created_at', limite24h())
       .order('created_at', { ascending: false })
 
     setAlertas(data || [])
@@ -30,25 +44,79 @@ export default function Home() {
       return
     }
 
-    await supabase.from('alertas').insert([
-      {
-        email,
-        bairro,
-        categoria: 'Segurança',
-        tipo_alerta: tipoAlerta,
-        local_descricao: localDescricao,
-        descricao,
-        verdade: 0,
-        boato: 0,
-        status: 'pendente',
-      },
-    ])
+    const { data: alertaExistente } = await supabase
+      .from('alertas')
+      .select('*')
+      .eq('bairro', bairro)
+      .eq('tipo_alerta', tipoAlerta)
+      .gte('created_at', limite24h())
+      .limit(1)
+      .single()
 
-    alert('Alerta enviado para validação comunitária.')
+    if (alertaExistente) {
+      const novoValor = alertaExistente.verdade + 1
+      const saldo = novoValor - alertaExistente.boato
+
+      await supabase
+        .from('alertas')
+        .update({
+          verdade: novoValor,
+          status: saldo >= 3 ? 'confirmado' : alertaExistente.status,
+        })
+        .eq('id', alertaExistente.id)
+
+      alert('Alerta semelhante já existia. Sua informação foi registrada como Verdade.')
+    } else {
+      await supabase.from('alertas').insert([
+        {
+          email,
+          bairro,
+          categoria: 'Segurança',
+          tipo_alerta: tipoAlerta,
+          local_descricao: localDescricao,
+          descricao,
+          verdade: 0,
+          boato: 0,
+          status: 'pendente',
+        },
+      ])
+
+      alert('Alerta enviado para validação comunitária.')
+    }
 
     setTipoAlerta('')
     setLocalDescricao('')
     setDescricao('')
+    await carregarAlertas()
+  }
+
+  async function votarVerdade(alerta: any) {
+    const novoValor = alerta.verdade + 1
+    const saldo = novoValor - alerta.boato
+
+    await supabase
+      .from('alertas')
+      .update({
+        verdade: novoValor,
+        status: saldo >= 3 ? 'confirmado' : alerta.status,
+      })
+      .eq('id', alerta.id)
+
+    await carregarAlertas()
+  }
+
+  async function votarBoato(alerta: any) {
+    const novoValor = alerta.boato + 1
+    const saldo = alerta.verdade - novoValor
+
+    await supabase
+      .from('alertas')
+      .update({
+        boato: novoValor,
+        status: saldo <= -3 ? 'boato' : alerta.status,
+      })
+      .eq('id', alerta.id)
+
     await carregarAlertas()
   }
 
@@ -132,83 +200,79 @@ export default function Home() {
           </button>
 
           <p className="text-xs text-gray-500 text-center mt-4">
-            O alerta ficará pendente até receber 3 marcações como Verdade.
+            Alertas semelhantes no mesmo bairro e tipo, dentro de 24h, serão agrupados.
           </p>
         </div>
 
         <div className="space-y-4">
           {alertas.length === 0 && (
             <p className="text-gray-500 text-center">
-              Ainda não há alertas cadastrados.
+              Ainda não há alertas cadastrados nas últimas 24 horas.
             </p>
           )}
 
-          {alertas.map((alerta) => (
-            <div
-              key={alerta.id}
-              className="bg-white rounded-3xl shadow border p-5"
-            >
-              <h2 className="text-2xl font-bold text-red-700">
-                🚨 {alerta.tipo_alerta} — {alerta.bairro}
-              </h2>
+          {alertas.map((alerta) => {
+            const saldo = alerta.verdade - alerta.boato
 
-              <p className="text-sm text-gray-500 mt-1">
-                📍 {alerta.local_descricao}
-              </p>
+            return (
+              <div
+                key={alerta.id}
+                className="bg-white rounded-3xl shadow border p-5"
+              >
+                <h2 className="text-2xl font-bold text-red-700">
+                  🚨 {alerta.tipo_alerta} — {alerta.bairro}
+                </h2>
 
-              <p className="text-gray-700 mt-4">{alerta.descricao}</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  🕒 Criado em {formatarData(alerta.created_at)}
+                </p>
 
-              <div className="flex gap-6 mt-5">
-                <button
-  onClick={async () => {
-    const novoValor = alerta.verdade + 1
-    await supabase
-      .from('alertas')
-      .update({
-        verdade: novoValor,
-        status: novoValor >= 3 ? 'confirmado' : alerta.status,
-      })
-      .eq('id', alerta.id)
+                <p className="text-sm text-gray-500 mt-1">
+                  📍 {alerta.local_descricao}
+                </p>
 
-    await carregarAlertas()
-  }}
-  className="font-bold text-green-700"
->
-  👍 Verdade {alerta.verdade}
-</button>
+                <p className="text-gray-700 mt-4">{alerta.descricao}</p>
 
-<button
-  onClick={async () => {
-    const novoValor = alerta.boato + 1
-    await supabase
-      .from('alertas')
-      .update({
-        boato: novoValor,
-        status: novoValor >= 3 ? 'boato' : alerta.status,
-      })
-      .eq('id', alerta.id)
+                <div className="flex gap-6 mt-5">
+                  <button
+                    onClick={() => votarVerdade(alerta)}
+                    className="font-bold text-green-700"
+                  >
+                    👍 Verdade {alerta.verdade}
+                  </button>
 
-    await carregarAlertas()
-  }}
-  className="font-bold text-red-700"
->
-  👎 Boato {alerta.boato}
-</button>
+                  <button
+                    onClick={() => votarBoato(alerta)}
+                    className="font-bold text-red-700"
+                  >
+                    👎 Boato {alerta.boato}
+                  </button>
+                </div>
+
+                <p className="text-sm text-gray-500 mt-3">
+                  Saldo comunitário: {saldo}
+                </p>
+
+                {saldo >= 3 && (
+                  <p className="text-green-700 font-bold mt-4">
+                    ✅ Confirmado pela comunidade
+                  </p>
+                )}
+
+                {saldo <= -3 && (
+                  <p className="text-red-700 font-bold mt-4">
+                    ❌ Marcado como boato
+                  </p>
+                )}
+
+                {saldo > -3 && saldo < 3 && (
+                  <p className="text-yellow-700 font-bold mt-4">
+                    ⏳ Aguardando validação comunitária
+                  </p>
+                )}
               </div>
-
-              {alerta.verdade >= 3 && (
-                <p className="text-green-700 font-bold mt-4">
-                  ✅ Confirmado pela comunidade
-                </p>
-              )}
-
-              {alerta.boato >= 3 && (
-                <p className="text-red-700 font-bold mt-4">
-                  ❌ Marcado como boato
-                </p>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       </main>
     )
