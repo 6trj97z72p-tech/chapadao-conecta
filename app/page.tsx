@@ -259,7 +259,7 @@ export default function Home() {
     className="min-h-screen p-6 bg-cover bg-center"
     style={{
       backgroundImage:
-        "linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)), url('/images/fundo1.png?v=2')",
+        "linear-gradient(rgba(255,255,255,0.88), rgba(255,255,255,0.88)), url('/images/fundo3.png')",
     }}
   >
 
