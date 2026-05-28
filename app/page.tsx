@@ -29,25 +29,33 @@ export default function Home() {
   }
 
   function tocarAlarme() {
-    const AudioContextClass =
-      window.AudioContext || (window as any).webkitAudioContext
+  const AudioContextClass =
+    window.AudioContext || (window as any).webkitAudioContext
 
-    const audioContext = new AudioContextClass()
+  const audioContext = new AudioContextClass()
 
-    for (let i = 0; i < 3; i++) {
-      const oscillator = audioContext.createOscillator()
-      const gainNode = audioContext.createGain()
+  function beep(inicio: number) {
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
 
-      oscillator.connect(gainNode)
-      gainNode.connect(audioContext.destination)
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
 
-      oscillator.frequency.value = 880
-      gainNode.gain.value = 0.12
+    oscillator.frequency.value = 950
+    gainNode.gain.value = 0.18
 
-      oscillator.start(audioContext.currentTime + i * 0.35)
-      oscillator.stop(audioContext.currentTime + i * 0.35 + 0.18)
-    }
+    oscillator.start(audioContext.currentTime + inicio)
+    oscillator.stop(audioContext.currentTime + inicio + 0.15)
   }
+
+  const grupos = [0, 1.2, 2.4]
+
+  grupos.forEach((grupoInicio) => {
+    beep(grupoInicio)
+    beep(grupoInicio + 0.25)
+    beep(grupoInicio + 0.5)
+  })
+}
 
   async function carregarAlertas() {
     const { data } = await supabase
