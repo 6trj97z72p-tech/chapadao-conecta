@@ -15,6 +15,15 @@ export default function Home() {
   const [descricao, setDescricao] = useState('')
   const [alertas, setAlertas] = useState<any[]>([])
 
+  const [nomePessoa, setNomePessoa] = useState('')
+  const [idadePessoa, setIdadePessoa] = useState('')
+  const [dataDesaparecimento, setDataDesaparecimento] = useState('')
+  const [localDesaparecimento, setLocalDesaparecimento] = useState('')
+  const [telefoneContato, setTelefoneContato] = useState('')
+  const [descricaoPessoa, setDescricaoPessoa] = useState('')
+  const [fotoPessoa, setFotoPessoa] = useState<File | null>(null)
+  const [pessoas, setPessoas] = useState<any[]>([])
+
   function limite24h() {
     const data = new Date()
     data.setHours(data.getHours() - 24)
@@ -29,33 +38,33 @@ export default function Home() {
   }
 
   function tocarAlarme() {
-  const AudioContextClass =
-    window.AudioContext || (window as any).webkitAudioContext
+    const AudioContextClass =
+      window.AudioContext || (window as any).webkitAudioContext
 
-  const audioContext = new AudioContextClass()
+    const audioContext = new AudioContextClass()
 
-  function beep(inicio: number) {
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
+    function beep(inicio: number) {
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
 
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
 
-    oscillator.frequency.value = 950
-    gainNode.gain.value = 0.18
+      oscillator.frequency.value = 950
+      gainNode.gain.value = 0.18
 
-    oscillator.start(audioContext.currentTime + inicio)
-    oscillator.stop(audioContext.currentTime + inicio + 0.15)
+      oscillator.start(audioContext.currentTime + inicio)
+      oscillator.stop(audioContext.currentTime + inicio + 0.15)
+    }
+
+    const grupos = [0, 1.2, 2.4]
+
+    grupos.forEach((grupoInicio) => {
+      beep(grupoInicio)
+      beep(grupoInicio + 0.25)
+      beep(grupoInicio + 0.5)
+    })
   }
-
-  const grupos = [0, 1.2, 2.4]
-
-  grupos.forEach((grupoInicio) => {
-    beep(grupoInicio)
-    beep(grupoInicio + 0.25)
-    beep(grupoInicio + 0.5)
-  })
-}
 
   async function carregarAlertas() {
     const { data } = await supabase
@@ -83,8 +92,17 @@ export default function Home() {
 
     const resultado = agrupados.reverse()
     setAlertas(resultado)
-
     return resultado
+  }
+
+  async function carregarPessoas() {
+    const { data } = await supabase
+      .from('pessoas_desaparecidas')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    setPessoas(data || [])
+    return data || []
   }
 
   async function publicarAlerta() {
@@ -160,28 +178,78 @@ export default function Home() {
     await carregarAlertas()
   }
 
+  async function publicarPessoa() {
+    if (
+      !nomePessoa ||
+      !idadePessoa ||
+      !dataDesaparecimento ||
+      !localDesaparecimento ||
+      !telefoneContato ||
+      !descricaoPessoa ||
+      !fotoPessoa
+    ) {
+      alert('Preencha todos os campos da pessoa desaparecida.')
+      return
+    }
+
+    const nomeArquivo = `${Date.now()}-${fotoPessoa.name}`
+
+    const upload = await supabase.storage
+      .from('pessoas-desaparecidas')
+      .upload(nomeArquivo, fotoPessoa)
+
+    if (upload.error) {
+      alert('Erro ao enviar a foto.')
+      return
+    }
+
+    const { data } = supabase.storage
+      .from('pessoas-desaparecidas')
+      .getPublicUrl(nomeArquivo)
+
+    await supabase.from('pessoas_desaparecidas').insert([
+      {
+        email,
+        bairro,
+        nome: nomePessoa,
+        idade: Number(idadePessoa),
+        foto_url: data.publicUrl,
+        data_desaparecimento: dataDesaparecimento,
+        local_desaparecimento: localDesaparecimento,
+        descricao: descricaoPessoa,
+        telefone_contato: telefoneContato,
+        status: 'DESAPARECIDA',
+      },
+    ])
+
+    alert('Pessoa desaparecida cadastrada.')
+
+    setNomePessoa('')
+    setIdadePessoa('')
+    setDataDesaparecimento('')
+    setLocalDesaparecimento('')
+    setTelefoneContato('')
+    setDescricaoPessoa('')
+    setFotoPessoa(null)
+
+    await carregarPessoas()
+  }
+
   if (logado && tela === 'alertas') {
     return (
       <main className="min-h-screen bg-gray-50 p-6">
-        <button
-          onClick={() => setTela('home')}
-          className="mb-6 text-green-800 font-bold"
-        >
+        <button onClick={() => setTela('home')} className="mb-6 text-green-800 font-bold">
           ← Voltar
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900">
-          🚨 Alertas de segurança
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900">🚨 Alertas de segurança</h1>
 
         <p className="text-gray-600 mt-2 mb-6">
           Crie alertas e acompanhe validações da comunidade.
         </p>
 
         <div className="bg-white rounded-3xl shadow border p-6 mb-8">
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Bairro
-          </label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">Bairro</label>
 
           <input
             value={bairro}
@@ -189,9 +257,7 @@ export default function Home() {
             className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-gray-100"
           />
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Tipo de alerta
-          </label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">Tipo de alerta</label>
 
           <select
             value={tipoAlerta}
@@ -204,14 +270,10 @@ export default function Home() {
             <option value="Assalto">Assalto</option>
             <option value="Narcotráfico">Narcotráfico</option>
             <option value="Arrastão">Arrastão</option>
-            <option value="Confronto entre Facções">
-              Confronto entre Facções
-            </option>
+            <option value="Confronto entre Facções">Confronto entre Facções</option>
           </select>
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Descrição do local
-          </label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">Descrição do local</label>
 
           <input
             type="text"
@@ -221,9 +283,7 @@ export default function Home() {
             className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
           />
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Descrição do ocorrido
-          </label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">Descrição do ocorrido</label>
 
           <textarea
             placeholder="Descreva brevemente o que está acontecendo"
@@ -248,10 +308,7 @@ export default function Home() {
           )}
 
           {alertas.map((alerta) => (
-            <div
-              key={alerta.id}
-              className="bg-white rounded-3xl shadow border p-5"
-            >
+            <div key={alerta.id} className="bg-white rounded-3xl shadow border p-5">
               <h2 className="text-2xl font-bold text-red-700">
                 🚨 {alerta.tipo_alerta} — {alerta.bairro}
               </h2>
@@ -267,19 +324,154 @@ export default function Home() {
               <p className="text-gray-700 mt-4">{alerta.descricao}</p>
 
               <div className="flex gap-6 mt-5">
-                <button
-                  onClick={() => votarVerdade(alerta)}
-                  className="font-bold text-green-700"
-                >
+                <button onClick={() => votarVerdade(alerta)} className="font-bold text-green-700">
                   👍 Verdade {alerta.verdade}
                 </button>
 
-                <button
-                  onClick={() => votarBoato(alerta)}
-                  className="font-bold text-red-700"
-                >
+                <button onClick={() => votarBoato(alerta)} className="font-bold text-red-700">
                   👎 Boato {alerta.boato}
                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+    )
+  }
+
+  if (logado && tela === 'pessoas') {
+    return (
+      <main className="min-h-screen bg-gray-50 p-6">
+        <button onClick={() => setTela('home')} className="mb-6 text-green-800 font-bold">
+          ← Voltar
+        </button>
+
+        <h1 className="text-3xl font-bold text-gray-900">👤 Pessoas desaparecidas</h1>
+
+        <p className="text-gray-600 mt-2 mb-6">
+          Cadastre e visualize pessoas desaparecidas na comunidade.
+        </p>
+
+        <div className="bg-white rounded-3xl shadow border p-6 mb-8">
+          <label className="block text-sm font-bold text-gray-700 mb-2">Foto</label>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFotoPessoa(e.target.files?.[0] || null)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+          />
+
+          <label className="block text-sm font-bold text-gray-700 mb-2">Nome</label>
+
+          <input
+            type="text"
+            value={nomePessoa}
+            onChange={(e) => setNomePessoa(e.target.value)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+          />
+
+          <label className="block text-sm font-bold text-gray-700 mb-2">Idade</label>
+
+          <input
+            type="number"
+            value={idadePessoa}
+            onChange={(e) => setIdadePessoa(e.target.value)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+          />
+
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Data do desaparecimento
+          </label>
+
+          <input
+            type="date"
+            value={dataDesaparecimento}
+            onChange={(e) => setDataDesaparecimento(e.target.value)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+          />
+
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Último local visto
+          </label>
+
+          <input
+            type="text"
+            value={localDesaparecimento}
+            onChange={(e) => setLocalDesaparecimento(e.target.value)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+          />
+
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Telefone para contato
+          </label>
+
+          <input
+            type="text"
+            value={telefoneContato}
+            onChange={(e) => setTelefoneContato(e.target.value)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+          />
+
+          <label className="block text-sm font-bold text-gray-700 mb-2">Descrição</label>
+
+          <textarea
+            value={descricaoPessoa}
+            onChange={(e) => setDescricaoPessoa(e.target.value)}
+            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white min-h-32"
+          />
+
+          <button
+            onClick={publicarPessoa}
+            className="w-full bg-green-700 text-white rounded-2xl p-4 font-bold"
+          >
+            Cadastrar pessoa desaparecida
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {pessoas.length === 0 && (
+            <p className="text-gray-500 text-center">
+              Ainda não há pessoas desaparecidas cadastradas.
+            </p>
+          )}
+
+          {pessoas.map((pessoa) => (
+            <div key={pessoa.id} className="bg-white rounded-3xl shadow border overflow-hidden">
+              {pessoa.foto_url && (
+                <img
+                  src={pessoa.foto_url}
+                  alt={pessoa.nome}
+                  className="w-full h-64 object-cover"
+                />
+              )}
+
+              <div className="p-5">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {pessoa.nome}
+                </h2>
+
+                <p className="text-gray-600 mt-1">
+                  {pessoa.idade} anos
+                </p>
+
+                <p className="text-sm text-gray-500 mt-3">
+                  🕒 Desaparecida desde: {pessoa.data_desaparecimento}
+                </p>
+
+                <p className="text-sm text-gray-500 mt-1">
+                  📍 Último local visto: {pessoa.local_desaparecimento}
+                </p>
+
+                <p className="text-sm text-gray-500 mt-1">
+                  📞 Contato: {pessoa.telefone_contato}
+                </p>
+
+                <p className="text-gray-700 mt-4">{pessoa.descricao}</p>
+
+                <p className="mt-4 inline-block bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-bold">
+                  {pessoa.status}
+                </p>
               </div>
             </div>
           ))}
@@ -309,36 +501,12 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            [
-              '🚨',
-              'Alertas de segurança',
-              'Veja e compartilhe alertas importantes da nossa região.',
-            ],
-            [
-              '🐾',
-              'Pets desaparecidos',
-              'Ajude a encontrar animais perdidos na comunidade.',
-            ],
-            [
-              '👤',
-              'Pessoas desaparecidas',
-              'Compartilhe informações que podem ajudar.',
-            ],
-            [
-              '☎️',
-              'Riscos e emergências',
-              'Informações sobre riscos e situações de emergência.',
-            ],
-            [
-              '📢',
-              'Avisos comunitários',
-              'Informes, eventos e comunicados úteis para moradores.',
-            ],
-            [
-              '✅',
-              'Confirmar informações',
-              'Ajude a manter nossa comunidade mais segura.',
-            ],
+            ['🚨', 'Alertas de segurança', 'Veja e compartilhe alertas importantes da nossa região.'],
+            ['🐾', 'Pets desaparecidos', 'Ajude a encontrar animais perdidos na comunidade.'],
+            ['👤', 'Pessoas desaparecidas', 'Compartilhe informações que podem ajudar.'],
+            ['☎️', 'Riscos e emergências', 'Informações sobre riscos e situações de emergência.'],
+            ['📢', 'Avisos comunitários', 'Informes, eventos e comunicados úteis para moradores.'],
+            ['✅', 'Confirmar informações', 'Ajude a manter nossa comunidade mais segura.'],
           ].map(([icon, title, text]) => (
             <div
               key={title}
@@ -346,6 +514,11 @@ export default function Home() {
                 if (title === 'Alertas de segurança') {
                   carregarAlertas()
                   setTela('alertas')
+                }
+
+                if (title === 'Pessoas desaparecidas') {
+                  carregarPessoas()
+                  setTela('pessoas')
                 }
               }}
               className="bg-white rounded-3xl p-6 shadow border cursor-pointer"
@@ -365,10 +538,7 @@ export default function Home() {
 
             <div className="space-y-4">
               {alertas.slice(0, 3).map((alerta) => (
-                <div
-                  key={alerta.id}
-                  className="bg-white rounded-3xl shadow border p-5"
-                >
+                <div key={alerta.id} className="bg-white rounded-3xl shadow border p-5">
                   <h3 className="text-xl font-bold text-red-700">
                     🚨 {alerta.tipo_alerta} — {alerta.bairro}
                   </h3>
@@ -492,7 +662,9 @@ export default function Home() {
               if (permitido) {
                 setEmail(emailLimpo)
                 setBairro(data.bairro)
+
                 const alertasCarregados = await carregarAlertas()
+                await carregarPessoas()
 
                 if (alertasCarregados.length > 0) {
                   tocarAlarme()
