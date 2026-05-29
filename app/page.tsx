@@ -437,12 +437,12 @@ export default function Home() {
           )}
 
           {pessoas.map((pessoa) => (
-            <div key={pessoa.id} className="bg-white rounded-3xl shadow border overflow-hidden">
+            <div key={pessoa.id} className="max-w-md mx-auto bg-white rounded-3xl shadow border overflow-hidden">
               {pessoa.foto_url && (
                 <img
                   src={pessoa.foto_url}
                   alt={pessoa.nome}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-80 object-cover"
                 />
               )}
 
@@ -456,7 +456,8 @@ export default function Home() {
                 </p>
 
                 <p className="text-sm text-gray-500 mt-3">
-                  🕒 Desaparecida desde: {pessoa.data_desaparecimento}
+                  🕒 Desaparecida desde:{' '}
+{new Date(pessoa.data_desaparecimento).toLocaleDateString('pt-BR')}
                 </p>
 
                 <p className="text-sm text-gray-500 mt-1">
