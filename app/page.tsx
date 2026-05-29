@@ -51,9 +51,7 @@ export default function Home() {
     'bg-white/95 rounded-3xl shadow-xl border border-emerald-200 p-6'
 
   const paginaClasse =
-    'min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 p-6'
-
-  const [bannerIndex, setBannerIndex] = useState(0)
+  'min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 p-6'
 
 useEffect(() => {
   const interval = setInterval(() => {
@@ -847,21 +845,7 @@ useEffect(() => {
 
   </div>
 </div>
-      <p className="text-2xl font-bold">
-        A melhor educação a distância do Brasil agora também em diversos países.
-      </p>
-
-      <p className="text-white/80 mt-3">
-        Projeto Acadêmico desenvolvido para a Universidade Internacional UNINTER
-      </p>
-
-      <p className="text-white/60 text-sm mt-1">
-        Curso Superior de Tecnologia em Redes de Computadores
-      </p>
-    </div>
-
-  </div>
-</div>
+      
           </div>
 
           <div className="bg-white/95 rounded-3xl shadow-xl border border-emerald-200 p-6 mb-8">
