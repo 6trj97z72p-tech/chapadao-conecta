@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -14,6 +14,31 @@ export async function GET() {
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+    const url = new URL(request.url)
+    const force = url.searchParams.get('force') === '1'
+
+    const resposta = await fetch('https://www.sistema-alerta-rio.com.br/tabela-de-dados/', {
+      cache: 'no-store',
+    })
+
+    const html = await resposta.text()
+    const texto = html.toLowerCase()
+
+    const existeAlertaReal =
+      texto.includes('estágio de alerta') ||
+      texto.includes('estagio de alerta') ||
+      texto.includes('chuva forte') ||
+      texto.includes('alerta de chuva') ||
+      texto.includes('tempestade')
+
+    if (!existeAlertaReal && !force) {
+      return NextResponse.json({
+        ok: true,
+        alerta: false,
+        mensagem: 'Nenhum alerta oficial crítico encontrado no Alerta Rio neste momento.',
+      })
+    }
 
     const bairros = [
       'Pavuna',
@@ -46,8 +71,9 @@ export async function GET() {
           bairro,
           tipo_emergencia: 'Alerta de Tempestade',
           local_descricao: 'Região atendida pelo Chapadão Conecta',
-          descricao:
-            'Alerta oficial de teste integrado ao módulo de Riscos e Emergências.',
+          descricao: force
+            ? 'Alerta oficial de teste gerado manualmente para validação da integração.'
+            : 'Alerta oficial identificado a partir do monitoramento público do Sistema Alerta Rio.',
           foto_url: null,
           status: 'ATIVO',
           origem: 'OFICIAL',
@@ -64,7 +90,9 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
+      alerta: true,
       origem: 'Alerta Rio / Prefeitura do Rio',
+      modo: force ? 'teste manual' : 'monitoramento oficial',
       resultados,
     })
   } catch (error: any) {
