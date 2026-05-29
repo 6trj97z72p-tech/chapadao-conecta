@@ -908,27 +908,30 @@ useEffect(() => {
   }}
 >
   {bannerIndex === 0 ? (
-    <div className="text-center">
-      <h2 className="text-2xl md:text-4xl font-bold">
-        Projeto Acadêmico desenvolvido para a Universidade Internacional UNINTER –
-        Tecnologia em Redes de Computadores
-      </h2>
-    </div>
-  ) : (
-    <div className="flex items-center gap-6">
-      <img
-        src="/images/logo uninter.png"
-        alt="UNINTER"
-        className="h-24 object-contain"
-      />
+  <div className="flex flex-col items-center text-center gap-4">
+    <img
+      src="/images/logo uninter.png"
+      alt="UNINTER"
+      className="h-20 object-contain"
+    />
 
-      <div className="flex-1">
-        <h2 className="text-2xl md:text-4xl font-bold">
-          A melhor educação a distância do Brasil agora também em diversos países.
-        </h2>
-      </div>
-    </div>
-  )}
+    <h2 className="text-xl md:text-3xl font-bold">
+      Centro Universitário Internacional.
+    </h2>
+  </div>
+) : (
+  <div className="flex flex-col items-center text-center gap-4">
+    <img
+      src="/images/logo uninter.png"
+      alt="UNINTER"
+      className="h-20 object-contain"
+    />
+
+    <h2 className="text-xl md:text-3xl font-bold max-w-3xl">
+      A melhor educação a distância do Brasil agora também em diversos países.
+    </h2>
+  </div>
+)}
 </div>
           <div className="mt-6 text-center text-xs text-emerald-100/70">
             Projeto acadêmico desenvolvido para a UNINTER — Tecnologia em Redes de Computadores
