@@ -14,6 +14,7 @@ export default function Home() {
   const [localDescricao, setLocalDescricao] = useState('')
   const [descricao, setDescricao] = useState('')
   const [alertas, setAlertas] = useState<any[]>([])
+  const [temAlertaLocal, setTemAlertaLocal] = useState(false)
 
   const [nomePessoa, setNomePessoa] = useState('')
   const [idadePessoa, setIdadePessoa] = useState('')
@@ -204,7 +205,9 @@ export default function Home() {
     setTipoAlerta('')
     setLocalDescricao('')
     setDescricao('')
-    await carregarAlertas(bairro)
+
+    const alertasLocais = await carregarAlertas(bairro)
+    setTemAlertaLocal(alertasLocais.length > 0)
   }
 
   async function votarVerdade(alerta: any) {
@@ -215,7 +218,7 @@ export default function Home() {
       })
       .eq('id', alerta.id)
 
-    await carregarAlertas(bairro)
+    await carregarAlertas()
   }
 
   async function votarBoato(alerta: any) {
@@ -226,7 +229,7 @@ export default function Home() {
       })
       .eq('id', alerta.id)
 
-    await carregarAlertas(bairro)
+    await carregarAlertas()
   }
 
   async function publicarPessoa() {
@@ -383,6 +386,7 @@ export default function Home() {
         status: 'ATIVO',
         origem: 'COMUNIDADE',
         fonte: 'Morador',
+        nivel: 'ATENCAO',
       },
     ])
 
@@ -399,16 +403,11 @@ export default function Home() {
   if (logado && tela === 'alertas') {
     return (
       <main className={paginaClasse}>
-        <button
-          onClick={() => setTela('home')}
-          className="mb-6 text-emerald-100 font-bold"
-        >
+        <button onClick={() => setTela('home')} className="mb-6 text-emerald-100 font-bold">
           ← Voltar
         </button>
 
-        <h1 className="text-3xl font-extrabold text-white">
-          🚨 Alertas de segurança
-        </h1>
+        <h1 className="text-3xl font-extrabold text-white">🚨 Alertas de segurança</h1>
 
         <p className="text-emerald-100/80 mt-2 mb-6">
           Crie alertas e acompanhe validações da comunidade.
@@ -419,11 +418,7 @@ export default function Home() {
           <input value={bairro} disabled className={`${inputClasse} bg-emerald-50`} />
 
           <label className={labelClasse}>Tipo de alerta</label>
-          <select
-            value={tipoAlerta}
-            onChange={(e) => setTipoAlerta(e.target.value)}
-            className={inputClasse}
-          >
+          <select value={tipoAlerta} onChange={(e) => setTipoAlerta(e.target.value)} className={inputClasse}>
             <option value="">Selecione uma opção</option>
             <option value="Operação Policial">Operação Policial</option>
             <option value="Tiroteio">Tiroteio</option>
@@ -450,10 +445,7 @@ export default function Home() {
             className={`${inputClasse} min-h-32`}
           />
 
-          <button
-            onClick={publicarAlerta}
-            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
-          >
+          <button onClick={publicarAlerta} className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition">
             Enviar alerta
           </button>
         </div>
@@ -466,10 +458,7 @@ export default function Home() {
           )}
 
           {alertas.map((alerta) => (
-            <div
-              key={alerta.id}
-              className="bg-white/95 rounded-3xl shadow-xl border border-red-100 p-5"
-            >
+            <div key={alerta.id} className="bg-white/95 rounded-3xl shadow-xl border border-red-100 p-5">
               <h2 className="text-2xl font-bold text-red-700">
                 🚨 {alerta.tipo_alerta} — {alerta.bairro}
               </h2>
@@ -485,17 +474,11 @@ export default function Home() {
               <p className="text-slate-700 mt-4">{alerta.descricao}</p>
 
               <div className="flex gap-6 mt-5">
-                <button
-                  onClick={() => votarVerdade(alerta)}
-                  className="font-bold text-emerald-700"
-                >
+                <button onClick={() => votarVerdade(alerta)} className="font-bold text-emerald-700">
                   👍 Verdade {alerta.verdade}
                 </button>
 
-                <button
-                  onClick={() => votarBoato(alerta)}
-                  className="font-bold text-red-700"
-                >
+                <button onClick={() => votarBoato(alerta)} className="font-bold text-red-700">
                   👎 Boato {alerta.boato}
                 </button>
               </div>
@@ -509,16 +492,11 @@ export default function Home() {
   if (logado && tela === 'riscos') {
     return (
       <main className={paginaClasse}>
-        <button
-          onClick={() => setTela('home')}
-          className="mb-6 text-emerald-100 font-bold"
-        >
+        <button onClick={() => setTela('home')} className="mb-6 text-emerald-100 font-bold">
           ← Voltar
         </button>
 
-        <h1 className="text-3xl font-extrabold text-white">
-          ☎️ Riscos e emergências
-        </h1>
+        <h1 className="text-3xl font-extrabold text-white">☎️ Riscos e emergências</h1>
 
         <p className="text-emerald-100/80 mt-2 mb-6">
           Cadastre e visualize riscos, emergências e alertas oficiais.
@@ -526,19 +504,10 @@ export default function Home() {
 
         <div className={`${cardClasse} mb-8`}>
           <label className={labelClasse}>Foto da ocorrência</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setFotoEmergencia(e.target.files?.[0] || null)}
-            className={inputClasse}
-          />
+          <input type="file" accept="image/*" onChange={(e) => setFotoEmergencia(e.target.files?.[0] || null)} className={inputClasse} />
 
           <label className={labelClasse}>Tipo de emergência</label>
-          <select
-            value={tipoEmergencia}
-            onChange={(e) => setTipoEmergencia(e.target.value)}
-            className={inputClasse}
-          >
+          <select value={tipoEmergencia} onChange={(e) => setTipoEmergencia(e.target.value)} className={inputClasse}>
             <option value="">Selecione uma opção</option>
             <option value="Alagamento">Alagamento</option>
             <option value="Deslizamento">Deslizamento</option>
@@ -567,10 +536,7 @@ export default function Home() {
             className={`${inputClasse} min-h-32`}
           />
 
-          <button
-            onClick={publicarRisco}
-            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
-          >
+          <button onClick={publicarRisco} className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition">
             Registrar risco ou emergência
           </button>
         </div>
@@ -583,16 +549,9 @@ export default function Home() {
           )}
 
           {riscos.map((risco) => (
-            <div
-              key={risco.id}
-              className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-amber-200 overflow-hidden"
-            >
+            <div key={risco.id} className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-amber-200 overflow-hidden">
               {risco.foto_url && (
-                <img
-                  src={risco.foto_url}
-                  alt={risco.tipo_emergencia}
-                  className="w-full h-80 object-cover"
-                />
+                <img src={risco.foto_url} alt={risco.tipo_emergencia} className="w-full h-80 object-cover" />
               )}
 
               <div className="p-5">
@@ -611,16 +570,20 @@ export default function Home() {
                 <p className="text-slate-700 mt-4">{risco.descricao}</p>
 
                 <div className="flex flex-wrap gap-2 mt-4">
-                  <span
-                    className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${
-                      risco.origem === 'OFICIAL'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-emerald-100 text-emerald-700'
-                    }`}
-                  >
-                    {risco.origem === 'OFICIAL'
-                      ? '🏛️ OFICIAL'
-                      : '👥 COMUNIDADE'}
+                  <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${
+                    risco.origem === 'OFICIAL'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    {risco.origem === 'OFICIAL' ? '🏛️ OFICIAL' : '👥 COMUNIDADE'}
+                  </span>
+
+                  <span className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${
+                    risco.nivel === 'CRITICO'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {risco.nivel === 'CRITICO' ? '🔴 CRÍTICO' : '🟡 ATENÇÃO'}
                   </span>
 
                   <span className="inline-block bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-bold">
@@ -642,16 +605,11 @@ export default function Home() {
   if (logado && tela === 'pessoas') {
     return (
       <main className={paginaClasse}>
-        <button
-          onClick={() => setTela('home')}
-          className="mb-6 text-emerald-100 font-bold"
-        >
+        <button onClick={() => setTela('home')} className="mb-6 text-emerald-100 font-bold">
           ← Voltar
         </button>
 
-        <h1 className="text-3xl font-extrabold text-white">
-          👤 Pessoas desaparecidas
-        </h1>
+        <h1 className="text-3xl font-extrabold text-white">👤 Pessoas desaparecidas</h1>
 
         <p className="text-emerald-100/80 mt-2 mb-6">
           Cadastre e visualize pessoas desaparecidas na comunidade.
@@ -659,64 +617,27 @@ export default function Home() {
 
         <div className={`${cardClasse} mb-8`}>
           <label className={labelClasse}>Foto</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setFotoPessoa(e.target.files?.[0] || null)}
-            className={inputClasse}
-          />
+          <input type="file" accept="image/*" onChange={(e) => setFotoPessoa(e.target.files?.[0] || null)} className={inputClasse} />
 
           <label className={labelClasse}>Nome</label>
-          <input
-            type="text"
-            value={nomePessoa}
-            onChange={(e) => setNomePessoa(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="text" value={nomePessoa} onChange={(e) => setNomePessoa(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Idade</label>
-          <input
-            type="number"
-            value={idadePessoa}
-            onChange={(e) => setIdadePessoa(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="number" value={idadePessoa} onChange={(e) => setIdadePessoa(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Data do desaparecimento</label>
-          <input
-            type="date"
-            value={dataDesaparecimento}
-            onChange={(e) => setDataDesaparecimento(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="date" value={dataDesaparecimento} onChange={(e) => setDataDesaparecimento(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Último local visto</label>
-          <input
-            type="text"
-            value={localDesaparecimento}
-            onChange={(e) => setLocalDesaparecimento(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="text" value={localDesaparecimento} onChange={(e) => setLocalDesaparecimento(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Telefone para contato</label>
-          <input
-            type="text"
-            value={telefoneContato}
-            onChange={(e) => setTelefoneContato(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="text" value={telefoneContato} onChange={(e) => setTelefoneContato(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Descrição</label>
-          <textarea
-            value={descricaoPessoa}
-            onChange={(e) => setDescricaoPessoa(e.target.value)}
-            className={`${inputClasse} min-h-32`}
-          />
+          <textarea value={descricaoPessoa} onChange={(e) => setDescricaoPessoa(e.target.value)} className={`${inputClasse} min-h-32`} />
 
-          <button
-            onClick={publicarPessoa}
-            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
-          >
+          <button onClick={publicarPessoa} className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition">
             Cadastrar pessoa desaparecida
           </button>
         </div>
@@ -729,26 +650,14 @@ export default function Home() {
           )}
 
           {pessoas.map((pessoa) => (
-            <div
-              key={pessoa.id}
-              className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-emerald-200 overflow-hidden"
-            >
+            <div key={pessoa.id} className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-emerald-200 overflow-hidden">
               {pessoa.foto_url && (
-                <img
-                  src={pessoa.foto_url}
-                  alt={pessoa.nome}
-                  className="w-full h-80 object-cover"
-                />
+                <img src={pessoa.foto_url} alt={pessoa.nome} className="w-full h-80 object-cover" />
               )}
 
               <div className="p-5">
-                <h2 className="text-2xl font-bold text-slate-900">
-                  {pessoa.nome}
-                </h2>
-
-                <p className="text-slate-600 mt-1">
-                  {pessoa.idade} anos
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900">{pessoa.nome}</h2>
+                <p className="text-slate-600 mt-1">{pessoa.idade} anos</p>
 
                 <p className="text-sm text-slate-500 mt-3">
                   🕒 Data do desaparecimento:{' '}
@@ -765,16 +674,12 @@ export default function Home() {
 
                 <p className="text-slate-700 mt-4">{pessoa.descricao}</p>
 
-                <p
-                  className={`mt-4 inline-block px-4 py-2 rounded-full text-sm font-bold ${
-                    pessoa.status === 'LOCALIZADA'
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}
-                >
-                  {pessoa.status === 'LOCALIZADA'
-                    ? '🟢 LOCALIZADO'
-                    : '🔴 DESAPARECIDO'}
+                <p className={`mt-4 inline-block px-4 py-2 rounded-full text-sm font-bold ${
+                  pessoa.status === 'LOCALIZADA'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-red-100 text-red-700'
+                }`}>
+                  {pessoa.status === 'LOCALIZADA' ? '🟢 LOCALIZADO' : '🔴 DESAPARECIDO'}
                 </p>
               </div>
             </div>
@@ -787,16 +692,11 @@ export default function Home() {
   if (logado && tela === 'pets') {
     return (
       <main className={paginaClasse}>
-        <button
-          onClick={() => setTela('home')}
-          className="mb-6 text-emerald-100 font-bold"
-        >
+        <button onClick={() => setTela('home')} className="mb-6 text-emerald-100 font-bold">
           ← Voltar
         </button>
 
-        <h1 className="text-3xl font-extrabold text-white">
-          🐾 Pets desaparecidos
-        </h1>
+        <h1 className="text-3xl font-extrabold text-white">🐾 Pets desaparecidos</h1>
 
         <p className="text-emerald-100/80 mt-2 mb-6">
           Cadastre e visualize pets desaparecidos na comunidade.
@@ -804,27 +704,13 @@ export default function Home() {
 
         <div className={`${cardClasse} mb-8`}>
           <label className={labelClasse}>Foto do pet</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setFotoPet(e.target.files?.[0] || null)}
-            className={inputClasse}
-          />
+          <input type="file" accept="image/*" onChange={(e) => setFotoPet(e.target.files?.[0] || null)} className={inputClasse} />
 
           <label className={labelClasse}>Nome do pet</label>
-          <input
-            type="text"
-            value={nomePet}
-            onChange={(e) => setNomePet(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="text" value={nomePet} onChange={(e) => setNomePet(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Tipo do pet</label>
-          <select
-            value={tipoPet}
-            onChange={(e) => setTipoPet(e.target.value)}
-            className={inputClasse}
-          >
+          <select value={tipoPet} onChange={(e) => setTipoPet(e.target.value)} className={inputClasse}>
             <option value="">Selecione</option>
             <option value="Cachorro">Cachorro</option>
             <option value="Gato">Gato</option>
@@ -833,48 +719,21 @@ export default function Home() {
           </select>
 
           <label className={labelClasse}>Cor</label>
-          <input
-            type="text"
-            value={corPet}
-            onChange={(e) => setCorPet(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="text" value={corPet} onChange={(e) => setCorPet(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Data do desaparecimento</label>
-          <input
-            type="date"
-            value={dataPet}
-            onChange={(e) => setDataPet(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="date" value={dataPet} onChange={(e) => setDataPet(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Último local visto</label>
-          <input
-            type="text"
-            value={localPet}
-            onChange={(e) => setLocalPet(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="text" value={localPet} onChange={(e) => setLocalPet(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Telefone para contato</label>
-          <input
-            type="text"
-            value={telefonePet}
-            onChange={(e) => setTelefonePet(e.target.value)}
-            className={inputClasse}
-          />
+          <input type="text" value={telefonePet} onChange={(e) => setTelefonePet(e.target.value)} className={inputClasse} />
 
           <label className={labelClasse}>Descrição</label>
-          <textarea
-            value={descricaoPet}
-            onChange={(e) => setDescricaoPet(e.target.value)}
-            className={`${inputClasse} min-h-32`}
-          />
+          <textarea value={descricaoPet} onChange={(e) => setDescricaoPet(e.target.value)} className={`${inputClasse} min-h-32`} />
 
-          <button
-            onClick={publicarPet}
-            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
-          >
+          <button onClick={publicarPet} className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition">
             Cadastrar pet desaparecido
           </button>
         </div>
@@ -887,26 +746,14 @@ export default function Home() {
           )}
 
           {pets.map((pet) => (
-            <div
-              key={pet.id}
-              className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-emerald-200 overflow-hidden"
-            >
+            <div key={pet.id} className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-emerald-200 overflow-hidden">
               {pet.foto_url && (
-                <img
-                  src={pet.foto_url}
-                  alt={pet.nome_pet}
-                  className="w-full h-80 object-cover"
-                />
+                <img src={pet.foto_url} alt={pet.nome_pet} className="w-full h-80 object-cover" />
               )}
 
               <div className="p-5">
-                <h2 className="text-2xl font-bold text-slate-900">
-                  🐾 {pet.nome_pet}
-                </h2>
-
-                <p className="text-slate-600 mt-1">
-                  {pet.tipo_pet} • {pet.cor}
-                </p>
+                <h2 className="text-2xl font-bold text-slate-900">🐾 {pet.nome_pet}</h2>
+                <p className="text-slate-600 mt-1">{pet.tipo_pet} • {pet.cor}</p>
 
                 <p className="text-sm text-slate-500 mt-3">
                   🕒 Desaparecido desde:{' '}
@@ -923,16 +770,12 @@ export default function Home() {
 
                 <p className="text-slate-700 mt-4">{pet.descricao}</p>
 
-                <p
-                  className={`mt-4 inline-block px-4 py-2 rounded-full text-sm font-bold ${
-                    pet.status === 'ENCONTRADO'
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-orange-100 text-orange-700'
-                  }`}
-                >
-                  {pet.status === 'ENCONTRADO'
-                    ? '🟢 ENCONTRADO'
-                    : '🟠 DESAPARECIDO'}
+                <p className={`mt-4 inline-block px-4 py-2 rounded-full text-sm font-bold ${
+                  pet.status === 'ENCONTRADO'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-orange-100 text-orange-700'
+                }`}>
+                  {pet.status === 'ENCONTRADO' ? '🟢 ENCONTRADO' : '🟠 DESAPARECIDO'}
                 </p>
               </div>
             </div>
@@ -1003,26 +846,36 @@ export default function Home() {
                   }
                 }}
                 className={`rounded-3xl p-6 shadow-xl border cursor-pointer hover:scale-[1.02] hover:shadow-2xl transition ${
-                  title === 'Alertas de segurança' && alertas.length > 0
+                  title === 'Alertas de segurança' && temAlertaLocal
                     ? 'bg-red-100 border-red-500 animate-pulse'
+                    : title === 'Riscos e emergências' && riscos.length > 0
+                    ? 'bg-yellow-100 border-yellow-500 animate-pulse'
                     : 'bg-white/95 border-emerald-200'
                 }`}
               >
                 <div className="text-5xl mb-4">{icon}</div>
-                <h3
-                  className={`text-2xl font-bold ${
-                    title === 'Alertas de segurança' && alertas.length > 0
-                      ? 'text-red-700'
-                      : 'text-emerald-950'
-                  }`}
-                >
+
+                <h3 className={`text-2xl font-bold ${
+                  title === 'Alertas de segurança' && temAlertaLocal
+                    ? 'text-red-700'
+                    : title === 'Riscos e emergências' && riscos.length > 0
+                    ? 'text-yellow-700'
+                    : 'text-emerald-950'
+                }`}>
                   {title}
                 </h3>
+
                 <p className="text-slate-600 mt-2">{text}</p>
 
-                {title === 'Alertas de segurança' && alertas.length > 0 && (
+                {title === 'Alertas de segurança' && temAlertaLocal && (
                   <p className="mt-4 text-red-700 font-bold">
                     🚨 Existem alertas ativos na sua região. Clique para visualizar.
+                  </p>
+                )}
+
+                {title === 'Riscos e emergências' && riscos.length > 0 && (
+                  <p className="mt-4 text-yellow-700 font-bold">
+                    ⚠️ Existem riscos ou emergências ativos. Clique para visualizar.
                   </p>
                 )}
               </div>
@@ -1124,6 +977,8 @@ export default function Home() {
                 setBairro(data.bairro)
 
                 const alertasCarregados = await carregarAlertas(data.bairro)
+                setTemAlertaLocal(alertasCarregados.length > 0)
+
                 await carregarPessoas()
                 await carregarPets()
                 await carregarRiscos()
