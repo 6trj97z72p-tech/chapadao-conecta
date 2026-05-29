@@ -37,8 +37,7 @@ export default function Home() {
   const inputClasse =
     'w-full border border-emerald-200 rounded-2xl p-4 mb-4 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600'
 
-  const labelClasse =
-    'block text-sm font-bold text-emerald-950 mb-2'
+  const labelClasse = 'block text-sm font-bold text-emerald-950 mb-2'
 
   const cardClasse =
     'bg-white/95 rounded-3xl shadow-xl border border-emerald-200 p-6'
@@ -88,12 +87,18 @@ export default function Home() {
     })
   }
 
-  async function carregarAlertas() {
-    const { data } = await supabase
+  async function carregarAlertas(bairroFiltro = '') {
+    let query = supabase
       .from('alertas')
       .select('*')
       .gte('created_at', limite24h())
       .order('created_at', { ascending: true })
+
+    if (bairroFiltro) {
+      query = query.eq('bairro', bairroFiltro)
+    }
+
+    const { data } = await query
 
     const agrupados: any[] = []
 
@@ -183,7 +188,7 @@ export default function Home() {
     setTipoAlerta('')
     setLocalDescricao('')
     setDescricao('')
-    await carregarAlertas()
+    await carregarAlertas(bairro)
   }
 
   async function votarVerdade(alerta: any) {
@@ -194,7 +199,7 @@ export default function Home() {
       })
       .eq('id', alerta.id)
 
-    await carregarAlertas()
+    await carregarAlertas(bairro)
   }
 
   async function votarBoato(alerta: any) {
@@ -205,7 +210,7 @@ export default function Home() {
       })
       .eq('id', alerta.id)
 
-    await carregarAlertas()
+    await carregarAlertas(bairro)
   }
 
   async function publicarPessoa() {
@@ -390,7 +395,7 @@ export default function Home() {
         <div className="space-y-4">
           {alertas.length === 0 && (
             <p className="text-emerald-100 text-center">
-              Ainda não há alertas cadastrados nas últimas 24 horas.
+              Ainda não há alertas cadastrados nas últimas 24 horas para a sua região.
             </p>
           )}
 
@@ -547,7 +552,7 @@ export default function Home() {
                 </p>
 
                 <p className="text-sm text-slate-500 mt-3">
-                  🕒 Desaparecida desde:{' '}
+                  🕒 Data do desaparecimento:{' '}
                   {new Date(pessoa.data_desaparecimento).toLocaleDateString('pt-BR')}
                 </p>
 
@@ -768,10 +773,10 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              ['🚨', 'Alertas de segurança', 'Veja e compartilhe alertas importantes da nossa região.'],
-              ['🐾', 'Pets desaparecidos', 'Ajude a encontrar animais perdidos na comunidade.'],
-              ['👤', 'Pessoas desaparecidas', 'Compartilhe informações que podem ajudar.'],
+              ['🚨', 'Alertas de segurança', 'Clique aqui para ver alertas ativos na sua região.'],
               ['☎️', 'Riscos e emergências', 'Informações sobre riscos e situações de emergência.'],
+              ['👤', 'Pessoas desaparecidas', 'Compartilhe informações que podem ajudar.'],
+              ['🐾', 'Pets desaparecidos', 'Ajude a encontrar animais perdidos na comunidade.'],
               ['📢', 'Avisos comunitários', 'Informes, eventos e comunicados úteis para moradores.'],
               ['✅', 'Confirmar informações', 'Ajude a manter nossa comunidade mais segura.'],
             ].map(([icon, title, text]) => (
@@ -779,7 +784,7 @@ export default function Home() {
                 key={title}
                 onClick={() => {
                   if (title === 'Alertas de segurança') {
-                    carregarAlertas()
+                    carregarAlertas(bairro)
                     setTela('alertas')
                   }
 
@@ -793,11 +798,29 @@ export default function Home() {
                     setTela('pets')
                   }
                 }}
-                className="bg-white/95 rounded-3xl p-6 shadow-xl border border-emerald-200 cursor-pointer hover:scale-[1.02] hover:shadow-2xl transition"
+                className={`rounded-3xl p-6 shadow-xl border cursor-pointer hover:scale-[1.02] hover:shadow-2xl transition ${
+                  title === 'Alertas de segurança' && alertas.length > 0
+                    ? 'bg-red-100 border-red-500 animate-pulse'
+                    : 'bg-white/95 border-emerald-200'
+                }`}
               >
                 <div className="text-5xl mb-4">{icon}</div>
-                <h3 className="text-2xl font-bold text-emerald-950">{title}</h3>
+                <h3
+                  className={`text-2xl font-bold ${
+                    title === 'Alertas de segurança' && alertas.length > 0
+                      ? 'text-red-700'
+                      : 'text-emerald-950'
+                  }`}
+                >
+                  {title}
+                </h3>
                 <p className="text-slate-600 mt-2">{text}</p>
+
+                {title === 'Alertas de segurança' && alertas.length > 0 && (
+                  <p className="mt-4 text-red-700 font-bold">
+                    🚨 Existem alertas ativos na sua região. Clique para visualizar.
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -819,7 +842,7 @@ export default function Home() {
       <section
         className="min-h-screen flex items-center justify-center p-6 bg-repeat"
         style={{
-          backgroundImage: "url('/images/fundo4.png')",
+          backgroundImage: "url('/images/fundo.png')",
           backgroundSize: '600px',
         }}
       >
@@ -896,7 +919,7 @@ export default function Home() {
                 setEmail(emailLimpo)
                 setBairro(data.bairro)
 
-                const alertasCarregados = await carregarAlertas()
+                const alertasCarregados = await carregarAlertas(data.bairro)
                 await carregarPessoas()
                 await carregarPets()
 
