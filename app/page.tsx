@@ -34,6 +34,12 @@ export default function Home() {
   const [fotoPet, setFotoPet] = useState<File | null>(null)
   const [pets, setPets] = useState<any[]>([])
 
+  const [tipoEmergencia, setTipoEmergencia] = useState('')
+  const [localEmergencia, setLocalEmergencia] = useState('')
+  const [descricaoEmergencia, setDescricaoEmergencia] = useState('')
+  const [fotoEmergencia, setFotoEmergencia] = useState<File | null>(null)
+  const [riscos, setRiscos] = useState<any[]>([])
+
   const inputClasse =
     'w-full border border-emerald-200 rounded-2xl p-4 mb-4 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600'
 
@@ -139,6 +145,16 @@ export default function Home() {
       .order('created_at', { ascending: false })
 
     setPets(data || [])
+    return data || []
+  }
+
+  async function carregarRiscos() {
+    const { data } = await supabase
+      .from('riscos_emergencias')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    setRiscos(data || [])
     return data || []
   }
 
@@ -330,6 +346,56 @@ export default function Home() {
     await carregarPets()
   }
 
+  async function publicarRisco() {
+    if (
+      !tipoEmergencia ||
+      !localEmergencia ||
+      !descricaoEmergencia ||
+      !fotoEmergencia
+    ) {
+      alert('Preencha todos os campos do risco ou emergência.')
+      return
+    }
+
+    const nomeArquivo = `${Date.now()}-${fotoEmergencia.name.replaceAll(' ', '_')}`
+
+    const upload = await supabase.storage
+      .from('riscos-emergencias')
+      .upload(nomeArquivo, fotoEmergencia)
+
+    if (upload.error) {
+      alert('Erro ao enviar a foto da emergência.')
+      return
+    }
+
+    const { data } = supabase.storage
+      .from('riscos-emergencias')
+      .getPublicUrl(nomeArquivo)
+
+    await supabase.from('riscos_emergencias').insert([
+      {
+        email,
+        bairro,
+        tipo_emergencia: tipoEmergencia,
+        local_descricao: localEmergencia,
+        descricao: descricaoEmergencia,
+        foto_url: data.publicUrl,
+        status: 'ATIVO',
+        origem: 'COMUNIDADE',
+        fonte: 'Morador',
+      },
+    ])
+
+    alert('Risco ou emergência registrado.')
+
+    setTipoEmergencia('')
+    setLocalEmergencia('')
+    setDescricaoEmergencia('')
+    setFotoEmergencia(null)
+
+    await carregarRiscos()
+  }
+
   if (logado && tela === 'alertas') {
     return (
       <main className={paginaClasse}>
@@ -395,7 +461,7 @@ export default function Home() {
         <div className="space-y-4">
           {alertas.length === 0 && (
             <p className="text-emerald-100 text-center">
-              Ainda não há alertas cadastrados nas últimas 24 horas para a sua região.
+              Ainda não há alertas cadastrados nas últimas 24 horas.
             </p>
           )}
 
@@ -432,6 +498,139 @@ export default function Home() {
                 >
                   👎 Boato {alerta.boato}
                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+    )
+  }
+
+  if (logado && tela === 'riscos') {
+    return (
+      <main className={paginaClasse}>
+        <button
+          onClick={() => setTela('home')}
+          className="mb-6 text-emerald-100 font-bold"
+        >
+          ← Voltar
+        </button>
+
+        <h1 className="text-3xl font-extrabold text-white">
+          ☎️ Riscos e emergências
+        </h1>
+
+        <p className="text-emerald-100/80 mt-2 mb-6">
+          Cadastre e visualize riscos, emergências e alertas oficiais.
+        </p>
+
+        <div className={`${cardClasse} mb-8`}>
+          <label className={labelClasse}>Foto da ocorrência</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFotoEmergencia(e.target.files?.[0] || null)}
+            className={inputClasse}
+          />
+
+          <label className={labelClasse}>Tipo de emergência</label>
+          <select
+            value={tipoEmergencia}
+            onChange={(e) => setTipoEmergencia(e.target.value)}
+            className={inputClasse}
+          >
+            <option value="">Selecione uma opção</option>
+            <option value="Alagamento">Alagamento</option>
+            <option value="Deslizamento">Deslizamento</option>
+            <option value="Incêndio">Incêndio</option>
+            <option value="Falta de energia">Falta de energia</option>
+            <option value="Via bloqueada">Via bloqueada</option>
+            <option value="Queda de árvore">Queda de árvore</option>
+            <option value="Risco estrutural">Risco estrutural</option>
+            <option value="Alerta de Tempestade">Alerta de Tempestade</option>
+          </select>
+
+          <label className={labelClasse}>Descrição do local</label>
+          <input
+            type="text"
+            placeholder="Ex: Rua, praça, ponto de referência"
+            value={localEmergencia}
+            onChange={(e) => setLocalEmergencia(e.target.value)}
+            className={inputClasse}
+          />
+
+          <label className={labelClasse}>Descrição da situação</label>
+          <textarea
+            placeholder="Descreva brevemente o risco ou emergência"
+            value={descricaoEmergencia}
+            onChange={(e) => setDescricaoEmergencia(e.target.value)}
+            className={`${inputClasse} min-h-32`}
+          />
+
+          <button
+            onClick={publicarRisco}
+            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
+          >
+            Registrar risco ou emergência
+          </button>
+        </div>
+
+        <div className="space-y-6">
+          {riscos.length === 0 && (
+            <p className="text-emerald-100 text-center">
+              Ainda não há riscos ou emergências cadastrados.
+            </p>
+          )}
+
+          {riscos.map((risco) => (
+            <div
+              key={risco.id}
+              className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-amber-200 overflow-hidden"
+            >
+              {risco.foto_url && (
+                <img
+                  src={risco.foto_url}
+                  alt={risco.tipo_emergencia}
+                  className="w-full h-80 object-cover"
+                />
+              )}
+
+              <div className="p-5">
+                <h2 className="text-2xl font-bold text-amber-700">
+                  ⚠️ {risco.tipo_emergencia} — {risco.bairro}
+                </h2>
+
+                <p className="text-sm text-slate-500 mt-3">
+                  🕒 Criado em {formatarData(risco.created_at)}
+                </p>
+
+                <p className="text-sm text-slate-500 mt-1">
+                  📍 {risco.local_descricao}
+                </p>
+
+                <p className="text-slate-700 mt-4">{risco.descricao}</p>
+
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <span
+                    className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${
+                      risco.origem === 'OFICIAL'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-emerald-100 text-emerald-700'
+                    }`}
+                  >
+                    {risco.origem === 'OFICIAL'
+                      ? '🏛️ OFICIAL'
+                      : '👥 COMUNIDADE'}
+                  </span>
+
+                  <span className="inline-block bg-amber-100 text-amber-700 px-4 py-2 rounded-full text-sm font-bold">
+                    {risco.status || 'ATIVO'}
+                  </span>
+                </div>
+
+                <p className="text-sm text-slate-500 mt-3">
+                  Fonte: {risco.fonte || 'Morador'}
+                </p>
               </div>
             </div>
           ))}
@@ -784,9 +983,14 @@ export default function Home() {
                 key={title}
                 onClick={() => {
                   if (title === 'Alertas de segurança') {
-  carregarAlertas()
-  setTela('alertas')
-}
+                    carregarAlertas()
+                    setTela('alertas')
+                  }
+
+                  if (title === 'Riscos e emergências') {
+                    carregarRiscos()
+                    setTela('riscos')
+                  }
 
                   if (title === 'Pessoas desaparecidas') {
                     carregarPessoas()
@@ -922,6 +1126,7 @@ export default function Home() {
                 const alertasCarregados = await carregarAlertas(data.bairro)
                 await carregarPessoas()
                 await carregarPets()
+                await carregarRiscos()
 
                 if (alertasCarregados.length > 0) {
                   tocarAlarme()
