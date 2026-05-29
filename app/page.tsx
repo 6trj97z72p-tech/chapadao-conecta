@@ -33,10 +33,6 @@ export default function Home() {
   const [descricaoPet, setDescricaoPet] = useState('')
   const [fotoPet, setFotoPet] = useState<File | null>(null)
   const [pets, setPets] = useState<any[]>([])
-  const [tipoEmergencia, setTipoEmergencia] = useState('')
-const [localEmergencia, setLocalEmergencia] = useState('')
-const [descricaoEmergencia, setDescricaoEmergencia] = useState('')
-const [riscos, setRiscos] = useState<any[]>([])
 
   const inputClasse =
     'w-full border border-emerald-200 rounded-2xl p-4 mb-4 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600'
@@ -137,15 +133,6 @@ const [riscos, setRiscos] = useState<any[]>([])
   }
 
   async function carregarPets() {
-    async function carregarRiscos() {
-  const { data } = await supabase
-    .from('riscos_emergencias')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  setRiscos(data || [])
-  return data || []
-}
     const { data } = await supabase
       .from('pets_desaparecidos')
       .select('*')
@@ -284,37 +271,6 @@ const [riscos, setRiscos] = useState<any[]>([])
   }
 
   async function publicarPet() {
-    async function publicarRisco() {
-  if (
-    !tipoEmergencia ||
-    !localEmergencia ||
-    !descricaoEmergencia
-  ) {
-    alert('Preencha todos os campos.')
-    return
-  }
-
-  await supabase.from('riscos_emergencias').insert([
-    {
-      email,
-      bairro,
-      tipo_emergencia: tipoEmergencia,
-      local_descricao: localEmergencia,
-      descricao: descricaoEmergencia,
-      status: 'ATIVO',
-      origem: 'COMUNIDADE',
-      fonte: 'Morador'
-    },
-  ])
-
-  alert('Risco ou emergência registrado.')
-
-  setTipoEmergencia('')
-  setLocalEmergencia('')
-  setDescricaoEmergencia('')
-
-  await carregarRiscos()
-}
     if (
       !nomePet ||
       !tipoPet ||
@@ -886,7 +842,7 @@ const [riscos, setRiscos] = useState<any[]>([])
       <section
         className="min-h-screen flex items-center justify-center p-6 bg-repeat"
         style={{
-          backgroundImage: "url('/images/fundo4.png')",
+          backgroundImage: "url('/images/fundo5.png')",
           backgroundSize: '1400px',
         }}
       >
