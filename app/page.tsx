@@ -931,6 +931,36 @@ useEffect(() => {
             📍 Região verificada — você está conectado à comunidade do Complexo do Chapadão e entorno.
           </div>
 
+          <div
+  className="rounded-3xl p-6 mt-8 mb-6 shadow-xl text-white"
+  style={{
+    background:
+      'linear-gradient(90deg, #0b2c69 0%, #1847a5 50%, #0b2c69 100%)',
+  }}
+>
+  {bannerIndex === 0 ? (
+    <div className="text-center">
+      <h2 className="text-2xl md:text-4xl font-bold">
+        Projeto Acadêmico desenvolvido para a Universidade Internacional UNINTER –
+        Tecnologia em Redes de Computadores
+      </h2>
+    </div>
+  ) : (
+    <div className="flex items-center gap-6">
+      <img
+        src="/images/logo uninter.png"
+        alt="UNINTER"
+        className="h-24 object-contain"
+      />
+
+      <div className="flex-1">
+        <h2 className="text-2xl md:text-4xl font-bold">
+          A melhor educação a distância do Brasil agora também em diversos países.
+        </h2>
+      </div>
+    </div>
+  )}
+</div>
           <div className="mt-6 text-center text-xs text-emerald-100/70">
             Projeto acadêmico desenvolvido para a UNINTER — Tecnologia em Redes de Computadores
           </div>
