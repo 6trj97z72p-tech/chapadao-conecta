@@ -934,7 +934,7 @@ useEffect(() => {
 )}
 </div>
           <div className="mt-6 text-center text-xs text-emerald-100/70">
-            Projeto acadêmico desenvolvido para a UNINTER — Tecnologia em Redes de Computadores
+            Centro Universitário Internacional.
           </div>
         </div>
       </main>
