@@ -497,10 +497,11 @@ useEffect(() => {
                 <button onClick={() => votarBoato(alerta)} className="font-bold text-red-700">
                   👎 Boato {alerta.boato}
                 </button>
-              </div>
-            </div>
-          ))}
-        </div>
+                            </div>
+      </div>
+    </div>
+  ))}
+</div>
       </main>
     )
   }
