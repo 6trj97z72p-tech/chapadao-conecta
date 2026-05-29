@@ -61,6 +61,12 @@ const alertaAtencao =
   : alertaCritico
   ? 'CRITICO'
   : 'ATENCAO'
+
+const tipoEmergencia = force
+  ? 'Alerta de Tempestade'
+  : alertaCritico
+  ? 'Alerta de Tempestade'
+  : 'Previsão de Chuva'
     
     for (const bairro of bairros) {
       const { data: existente } = await supabase
@@ -81,7 +87,7 @@ const alertaAtencao =
   {
     email: 'oficial@alertario.rio',
     bairro,
-    tipo_emergencia: 'Alerta de Tempestade',
+    tipo_emergencia: tipoEmergencia,
     nivel,
     local_descricao: 'Região atendida pelo Chapadão Conecta',
     descricao: force
