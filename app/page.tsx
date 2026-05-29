@@ -814,38 +814,7 @@ useEffect(() => {
   Informação que aproxima. Comunidade que protege.
 </p>
 
-<div
-  className="rounded-3xl p-6 mt-6 mb-8 shadow-xl border border-white/10 text-white"
-  style={{
-    background:
-      'linear-gradient(90deg, #1c1b4f 0%, #2d2bb7 45%, #3b3b66 100%)',
-  }}
->
-  <div className="flex items-center gap-6">
-
-    <img
-      src="/images/logo uninter.png"
-      alt="UNINTER"
-      className="h-24 object-contain rounded-lg"
-    />
-
-    <div className="flex-1 text-center">
-
-      {bannerIndex === 0 ? (
-        <h2 className="text-2xl md:text-4xl font-bold">
-          A melhor educação a distância do Brasil agora também em diversos países.
-        </h2>
-      ) : (
-        <h2 className="text-2xl md:text-4xl font-bold">
-          Projeto Acadêmico desenvolvido para a Universidade Internacional UNINTER – Tecnologia em Redes de Computadores
-        </h2>
-      )}
-
-    </div>
-
-  </div>
-</div>
-      
+   
           </div>
 
           <div className="bg-white/95 rounded-3xl shadow-xl border border-emerald-200 p-6 mb-8">
