@@ -78,21 +78,25 @@ const alertaAtencao =
       }
 
       const { error } = await supabase.from('riscos_emergencias').insert([
-        {
-          email: 'oficial@alertario.rio',
-          bairro,
-          tipo_emergencia: 'Alerta de Tempestade',
-          nivel,
-          local_descricao: 'Região atendida pelo Chapadão Conecta',
-          descricao: force
-            ? 'Alerta oficial de teste gerado manualmente para validação da integração.'
-            : 'Alerta oficial identificado a partir do monitoramento público do Sistema Alerta Rio.',
-          foto_url: null,
-          status: 'ATIVO',
-          origem: 'OFICIAL',
-          fonte: 'Alerta Rio / Prefeitura do Rio',
-        },
-      ])
+  {
+    email: 'oficial@alertario.rio',
+    bairro,
+    tipo_emergencia: 'Alerta de Tempestade',
+    nivel,
+    local_descricao: 'Região atendida pelo Chapadão Conecta',
+    descricao: force
+      ? 'Alerta oficial de teste gerado manualmente para validação da integração.'
+      : 'Alerta oficial identificado a partir do monitoramento público do Sistema Alerta Rio.',
+    foto_url: null,
+    status: 'ATIVO',
+    origem: 'OFICIAL',
+    fonte: 'Alerta Rio / Prefeitura do Rio',
+
+    expira_em: new Date(
+      Date.now() + 12 * 60 * 60 * 1000
+    ).toISOString(),
+  },
+])
 
       if (error) {
         resultados.push({ bairro, status: 'erro', error: error.message })
