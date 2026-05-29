@@ -886,7 +886,7 @@ const [riscos, setRiscos] = useState<any[]>([])
       <section
         className="min-h-screen flex items-center justify-center p-6 bg-repeat"
         style={{
-          backgroundImage: "url('/images/fundo5.png')",
+          backgroundImage: "url('/images/fundo4.png')",
           backgroundSize: '1400px',
         }}
       >
