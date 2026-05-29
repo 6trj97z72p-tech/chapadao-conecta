@@ -87,15 +87,15 @@ export default function Home() {
     })
   }
 
-  async function carregarAlertas(bairroFiltro = '') {
+  async function carregarAlertas(cepFiltro = '') {
     let query = supabase
       .from('alertas')
       .select('*')
       .gte('created_at', limite24h())
       .order('created_at', { ascending: true })
 
-    if (bairroFiltro) {
-      query = query.eq('bairro', bairroFiltro)
+    if (cepFiltro) {
+      query = query.eq('cep', cepFiltro)
     }
 
     const { data } = await query
@@ -105,7 +105,7 @@ export default function Home() {
     ;(data || []).forEach((alerta) => {
       const existente = agrupados.find(
         (item) =>
-          item.bairro === alerta.bairro &&
+          item.cep === alerta.cep &&
           item.tipo_alerta === alerta.tipo_alerta
       )
 
@@ -151,7 +151,7 @@ export default function Home() {
     const { data: alertasExistentes } = await supabase
       .from('alertas')
       .select('*')
-      .eq('bairro', bairro)
+      .eq('cep', cep)
       .eq('tipo_alerta', tipoAlerta)
       .gte('created_at', limite24h())
       .order('created_at', { ascending: true })
@@ -166,11 +166,12 @@ export default function Home() {
         })
         .eq('id', alertaExistente.id)
 
-      alert('Alerta semelhante já existia. Sua informação foi registrada como Verdade.')
+      alert('Alerta semelhante já existia para este CEP. Sua informação foi registrada como Verdade.')
     } else {
       await supabase.from('alertas').insert([
         {
           email,
+          cep,
           bairro,
           categoria: 'Segurança',
           tipo_alerta: tipoAlerta,
@@ -188,7 +189,7 @@ export default function Home() {
     setTipoAlerta('')
     setLocalDescricao('')
     setDescricao('')
-    await carregarAlertas(bairro)
+    await carregarAlertas(cep)
   }
 
   async function votarVerdade(alerta: any) {
@@ -199,7 +200,7 @@ export default function Home() {
       })
       .eq('id', alerta.id)
 
-    await carregarAlertas(bairro)
+    await carregarAlertas(cep)
   }
 
   async function votarBoato(alerta: any) {
@@ -210,7 +211,7 @@ export default function Home() {
       })
       .eq('id', alerta.id)
 
-    await carregarAlertas(bairro)
+    await carregarAlertas(cep)
   }
 
   async function publicarPessoa() {
@@ -345,10 +346,13 @@ export default function Home() {
         </h1>
 
         <p className="text-emerald-100/80 mt-2 mb-6">
-          Crie alertas e acompanhe validações da comunidade.
+          Alertas exibidos somente para o CEP informado no acesso.
         </p>
 
         <div className={`${cardClasse} mb-8`}>
+          <label className={labelClasse}>CEP</label>
+          <input value={cep} disabled className={`${inputClasse} bg-emerald-50`} />
+
           <label className={labelClasse}>Bairro</label>
           <input value={bairro} disabled className={`${inputClasse} bg-emerald-50`} />
 
@@ -395,7 +399,7 @@ export default function Home() {
         <div className="space-y-4">
           {alertas.length === 0 && (
             <p className="text-emerald-100 text-center">
-              Ainda não há alertas cadastrados nas últimas 24 horas para a sua região.
+              Ainda não há alertas cadastrados nas últimas 24 horas para este CEP.
             </p>
           )}
 
@@ -409,6 +413,10 @@ export default function Home() {
               </h2>
 
               <p className="text-sm text-slate-500 mt-2">
+                📍 CEP: {alerta.cep}
+              </p>
+
+              <p className="text-sm text-slate-500 mt-1">
                 🕒 Criado em {formatarData(alerta.created_at)}
               </p>
 
@@ -773,7 +781,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              ['🚨', 'Alertas de segurança', 'Clique aqui para ver alertas ativos na sua região.'],
+              ['🚨', 'Alertas de segurança', 'Clique aqui para ver alertas ativos no seu CEP.'],
               ['☎️', 'Riscos e emergências', 'Informações sobre riscos e situações de emergência.'],
               ['👤', 'Pessoas desaparecidas', 'Compartilhe informações que podem ajudar.'],
               ['🐾', 'Pets desaparecidos', 'Ajude a encontrar animais perdidos na comunidade.'],
@@ -784,7 +792,7 @@ export default function Home() {
                 key={title}
                 onClick={() => {
                   if (title === 'Alertas de segurança') {
-                    carregarAlertas(bairro)
+                    carregarAlertas(cep)
                     setTela('alertas')
                   }
 
@@ -818,7 +826,7 @@ export default function Home() {
 
                 {title === 'Alertas de segurança' && alertas.length > 0 && (
                   <p className="mt-4 text-red-700 font-bold">
-                    🚨 Existem alertas ativos na sua região. Clique para visualizar.
+                    🚨 Existem alertas ativos para o seu CEP. Clique para visualizar.
                   </p>
                 )}
               </div>
@@ -896,6 +904,8 @@ export default function Home() {
 
               const data = await response.json()
 
+              const cepNormalizado = data.cep || cep.trim()
+
               const bairrosPermitidos = [
                 'Pavuna',
                 'Costa Barros',
@@ -909,7 +919,7 @@ export default function Home() {
               await supabase.from('usuarios').insert([
                 {
                   email: emailLimpo,
-                  cep,
+                  cep: cepNormalizado,
                   bairro: data.bairro,
                   permitido,
                 },
@@ -917,9 +927,10 @@ export default function Home() {
 
               if (permitido) {
                 setEmail(emailLimpo)
+                setCep(cepNormalizado)
                 setBairro(data.bairro)
 
-                const alertasCarregados = await carregarAlertas(data.bairro)
+                const alertasCarregados = await carregarAlertas(cepNormalizado)
                 await carregarPessoas()
                 await carregarPets()
 
