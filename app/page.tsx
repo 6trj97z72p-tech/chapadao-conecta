@@ -843,7 +843,7 @@ export default function Home() {
         className="min-h-screen flex items-center justify-center p-6 bg-repeat"
         style={{
           backgroundImage: "url('/images/fundo5.png')",
-          backgroundSize: '600px',
+          backgroundSize: '1400px',
         }}
       >
         <div className="w-full max-w-md bg-white/95 rounded-3xl shadow-2xl border border-emerald-200 p-7">
