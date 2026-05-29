@@ -129,9 +129,7 @@ export default function Home() {
         })
         .eq('id', alertaExistente.id)
 
-      alert(
-        'Alerta semelhante já existia. Sua informação foi registrada como Verdade.'
-      )
+      alert('Alerta semelhante já existia. Sua informação foi registrada como Verdade.')
     } else {
       await supabase.from('alertas').insert([
         {
@@ -192,7 +190,7 @@ export default function Home() {
       return
     }
 
-    const nomeArquivo = `${Date.now()}-${fotoPessoa.name}`
+    const nomeArquivo = `${Date.now()}-${fotoPessoa.name.replaceAll(' ', '_')}`
 
     const upload = await supabase.storage
       .from('pessoas-desaparecidas')
@@ -235,34 +233,45 @@ export default function Home() {
     await carregarPessoas()
   }
 
+  const inputClasse =
+    'w-full border border-emerald-200 rounded-2xl p-4 mb-4 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600'
+
+  const labelClasse =
+    'block text-sm font-bold text-emerald-950 mb-2'
+
+  const cardClasse =
+    'bg-white/95 rounded-3xl shadow-xl border border-emerald-200 p-6'
+
+  const paginaClasse =
+    'min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 p-6'
+
   if (logado && tela === 'alertas') {
     return (
-      <main className="min-h-screen bg-gray-50 p-6">
-        <button onClick={() => setTela('home')} className="mb-6 text-green-800 font-bold">
+      <main className={paginaClasse}>
+        <button
+          onClick={() => setTela('home')}
+          className="mb-6 text-emerald-100 font-bold"
+        >
           ← Voltar
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900">🚨 Alertas de segurança</h1>
+        <h1 className="text-3xl font-extrabold text-white">
+          🚨 Alertas de segurança
+        </h1>
 
-        <p className="text-gray-600 mt-2 mb-6">
+        <p className="text-emerald-100/80 mt-2 mb-6">
           Crie alertas e acompanhe validações da comunidade.
         </p>
 
-        <div className="bg-white rounded-3xl shadow border p-6 mb-8">
-          <label className="block text-sm font-bold text-gray-700 mb-2">Bairro</label>
+        <div className={`${cardClasse} mb-8`}>
+          <label className={labelClasse}>Bairro</label>
+          <input value={bairro} disabled className={`${inputClasse} bg-emerald-50`} />
 
-          <input
-            value={bairro}
-            disabled
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-gray-100"
-          />
-
-          <label className="block text-sm font-bold text-gray-700 mb-2">Tipo de alerta</label>
-
+          <label className={labelClasse}>Tipo de alerta</label>
           <select
             value={tipoAlerta}
             onChange={(e) => setTipoAlerta(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+            className={inputClasse}
           >
             <option value="">Selecione uma opção</option>
             <option value="Operação Policial">Operação Policial</option>
@@ -273,28 +282,26 @@ export default function Home() {
             <option value="Confronto entre Facções">Confronto entre Facções</option>
           </select>
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">Descrição do local</label>
-
+          <label className={labelClasse}>Descrição do local</label>
           <input
             type="text"
             placeholder="Ex: próximo à estação, praça, rua ou referência"
             value={localDescricao}
             onChange={(e) => setLocalDescricao(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+            className={inputClasse}
           />
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">Descrição do ocorrido</label>
-
+          <label className={labelClasse}>Descrição do ocorrido</label>
           <textarea
             placeholder="Descreva brevemente o que está acontecendo"
             value={descricao}
             onChange={(e) => setDescricao(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white min-h-32"
+            className={`${inputClasse} min-h-32`}
           />
 
           <button
             onClick={publicarAlerta}
-            className="w-full bg-green-700 text-white rounded-2xl p-4 font-bold"
+            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
           >
             Enviar alerta
           </button>
@@ -302,33 +309,42 @@ export default function Home() {
 
         <div className="space-y-4">
           {alertas.length === 0 && (
-            <p className="text-gray-500 text-center">
+            <p className="text-emerald-100 text-center">
               Ainda não há alertas cadastrados nas últimas 24 horas.
             </p>
           )}
 
           {alertas.map((alerta) => (
-            <div key={alerta.id} className="bg-white rounded-3xl shadow border p-5">
+            <div
+              key={alerta.id}
+              className="bg-white/95 rounded-3xl shadow-xl border border-red-100 p-5"
+            >
               <h2 className="text-2xl font-bold text-red-700">
                 🚨 {alerta.tipo_alerta} — {alerta.bairro}
               </h2>
 
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-slate-500 mt-2">
                 🕒 Criado em {formatarData(alerta.created_at)}
               </p>
 
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-slate-500 mt-1">
                 📍 {alerta.local_descricao}
               </p>
 
-              <p className="text-gray-700 mt-4">{alerta.descricao}</p>
+              <p className="text-slate-700 mt-4">{alerta.descricao}</p>
 
               <div className="flex gap-6 mt-5">
-                <button onClick={() => votarVerdade(alerta)} className="font-bold text-green-700">
+                <button
+                  onClick={() => votarVerdade(alerta)}
+                  className="font-bold text-emerald-700"
+                >
                   👍 Verdade {alerta.verdade}
                 </button>
 
-                <button onClick={() => votarBoato(alerta)} className="font-bold text-red-700">
+                <button
+                  onClick={() => votarBoato(alerta)}
+                  className="font-bold text-red-700"
+                >
                   👎 Boato {alerta.boato}
                 </button>
               </div>
@@ -341,103 +357,98 @@ export default function Home() {
 
   if (logado && tela === 'pessoas') {
     return (
-      <main className="min-h-screen bg-gray-50 p-6">
-        <button onClick={() => setTela('home')} className="mb-6 text-green-800 font-bold">
+      <main className={paginaClasse}>
+        <button
+          onClick={() => setTela('home')}
+          className="mb-6 text-emerald-100 font-bold"
+        >
           ← Voltar
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900">👤 Pessoas desaparecidas</h1>
+        <h1 className="text-3xl font-extrabold text-white">
+          👤 Pessoas desaparecidas
+        </h1>
 
-        <p className="text-gray-600 mt-2 mb-6">
+        <p className="text-emerald-100/80 mt-2 mb-6">
           Cadastre e visualize pessoas desaparecidas na comunidade.
         </p>
 
-        <div className="bg-white rounded-3xl shadow border p-6 mb-8">
-          <label className="block text-sm font-bold text-gray-700 mb-2">Foto</label>
-
+        <div className={`${cardClasse} mb-8`}>
+          <label className={labelClasse}>Foto</label>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setFotoPessoa(e.target.files?.[0] || null)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+            className={inputClasse}
           />
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">Nome</label>
-
+          <label className={labelClasse}>Nome</label>
           <input
             type="text"
             value={nomePessoa}
             onChange={(e) => setNomePessoa(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+            className={inputClasse}
           />
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">Idade</label>
-
+          <label className={labelClasse}>Idade</label>
           <input
             type="number"
             value={idadePessoa}
             onChange={(e) => setIdadePessoa(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+            className={inputClasse}
           />
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Data do desaparecimento
-          </label>
-
+          <label className={labelClasse}>Data do desaparecimento</label>
           <input
             type="date"
             value={dataDesaparecimento}
             onChange={(e) => setDataDesaparecimento(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+            className={inputClasse}
           />
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Último local visto
-          </label>
-
+          <label className={labelClasse}>Último local visto</label>
           <input
             type="text"
             value={localDesaparecimento}
             onChange={(e) => setLocalDesaparecimento(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+            className={inputClasse}
           />
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            Telefone para contato
-          </label>
-
+          <label className={labelClasse}>Telefone para contato</label>
           <input
             type="text"
             value={telefoneContato}
             onChange={(e) => setTelefoneContato(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+            className={inputClasse}
           />
 
-          <label className="block text-sm font-bold text-gray-700 mb-2">Descrição</label>
-
+          <label className={labelClasse}>Descrição</label>
           <textarea
             value={descricaoPessoa}
             onChange={(e) => setDescricaoPessoa(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white min-h-32"
+            className={`${inputClasse} min-h-32`}
           />
 
           <button
             onClick={publicarPessoa}
-            className="w-full bg-green-700 text-white rounded-2xl p-4 font-bold"
+            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
           >
             Cadastrar pessoa desaparecida
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {pessoas.length === 0 && (
-            <p className="text-gray-500 text-center">
+            <p className="text-emerald-100 text-center">
               Ainda não há pessoas desaparecidas cadastradas.
             </p>
           )}
 
           {pessoas.map((pessoa) => (
-            <div key={pessoa.id} className="max-w-md mx-auto bg-white rounded-3xl shadow border overflow-hidden">
+            <div
+              key={pessoa.id}
+              className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-emerald-200 overflow-hidden"
+            >
               {pessoa.foto_url && (
                 <img
                   src={pessoa.foto_url}
@@ -447,34 +458,40 @@ export default function Home() {
               )}
 
               <div className="p-5">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-slate-900">
                   {pessoa.nome}
                 </h2>
 
-                <p className="text-gray-600 mt-1">
+                <p className="text-slate-600 mt-1">
                   {pessoa.idade} anos
                 </p>
 
-                <p className="text-sm text-gray-500 mt-3">
+                <p className="text-sm text-slate-500 mt-3">
                   🕒 Desaparecida desde:{' '}
-{new Date(pessoa.data_desaparecimento).toLocaleDateString('pt-BR')}
+                  {new Date(pessoa.data_desaparecimento).toLocaleDateString('pt-BR')}
                 </p>
 
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-slate-500 mt-1">
                   📍 Último local visto: {pessoa.local_desaparecimento}
                 </p>
 
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-slate-500 mt-1">
                   📞 Contato: {pessoa.telefone_contato}
                 </p>
 
-                <p className="text-gray-700 mt-4">{pessoa.descricao}</p>
+                <p className="text-slate-700 mt-4">{pessoa.descricao}</p>
 
-                <p className="mt-4 inline-block bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-bold">
-  {pessoa.status === 'LOCALIZADA'
-    ? '🟢 LOCALIZADO'
-    : '🔴 DESAPARECIDO'}
-</p>
+                <p
+                  className={`mt-4 inline-block px-4 py-2 rounded-full text-sm font-bold ${
+                    pessoa.status === 'LOCALIZADA'
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {pessoa.status === 'LOCALIZADA'
+                    ? '🟢 LOCALIZADO'
+                    : '🔴 DESAPARECIDO'}
+                </p>
               </div>
             </div>
           ))}
@@ -485,107 +502,120 @@ export default function Home() {
 
   if (logado) {
     return (
-      <main className="min-h-screen bg-gray-50 p-6">
-        <h1 className="text-4xl font-bold text-green-900 text-center">
-          Chapadão Conecta
-        </h1>
+      <main className={paginaClasse}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-sm font-bold text-emerald-300 uppercase tracking-widest">
+              Comunidade hiperlocal
+            </p>
 
-        <p className="text-center text-gray-600 mt-2 mb-8">
-          Informação que aproxima. Comunidade que protege.
-        </p>
+            <h1 className="text-5xl font-extrabold text-white mt-2">
+              Chapadão Conecta
+            </h1>
 
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
-          Olá, comunidade! 👋
-        </h2>
-
-        <p className="text-gray-600 mb-6">
-          Escolha uma opção abaixo para acessar as informações da sua região.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[
-            ['🚨', 'Alertas de segurança', 'Veja e compartilhe alertas importantes da nossa região.'],
-            ['🐾', 'Pets desaparecidos', 'Ajude a encontrar animais perdidos na comunidade.'],
-            ['👤', 'Pessoas desaparecidas', 'Compartilhe informações que podem ajudar.'],
-            ['☎️', 'Riscos e emergências', 'Informações sobre riscos e situações de emergência.'],
-            ['📢', 'Avisos comunitários', 'Informes, eventos e comunicados úteis para moradores.'],
-            ['✅', 'Confirmar informações', 'Ajude a manter nossa comunidade mais segura.'],
-          ].map(([icon, title, text]) => (
-            <div
-              key={title}
-              onClick={() => {
-                if (title === 'Alertas de segurança') {
-                  carregarAlertas()
-                  setTela('alertas')
-                }
-
-                if (title === 'Pessoas desaparecidas') {
-                  carregarPessoas()
-                  setTela('pessoas')
-                }
-              }}
-              className="bg-white rounded-3xl p-6 shadow border cursor-pointer"
-            >
-              <div className="text-5xl mb-4">{icon}</div>
-              <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-              <p className="text-gray-600 mt-2">{text}</p>
-            </div>
-          ))}
-        </div>
-
-        {alertas.length > 0 && (
-          <div className="mt-10">
-            <h2 className="text-2xl font-bold text-red-700 mb-4">
-              🚨 Alertas de segurança ativos
-            </h2>
-
-            <div className="space-y-4">
-              {alertas.slice(0, 3).map((alerta) => (
-                <div key={alerta.id} className="bg-white rounded-3xl shadow border p-5">
-                  <h3 className="text-xl font-bold text-red-700">
-                    🚨 {alerta.tipo_alerta} — {alerta.bairro}
-                  </h3>
-
-                  <p className="text-sm text-gray-500 mt-1">
-                    🕒 {formatarData(alerta.created_at)}
-                  </p>
-
-                  <p className="text-sm text-gray-500 mt-1">
-                    📍 {alerta.local_descricao}
-                  </p>
-
-                  <div className="flex gap-6 mt-3">
-                    <span className="font-bold text-green-700">
-                      👍 Verdade {alerta.verdade}
-                    </span>
-
-                    <span className="font-bold text-red-700">
-                      👎 Boato {alerta.boato}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-xs text-gray-500 text-center mt-4">
-              Para validar ou criar novos alertas, acesse o menu Alertas de segurança.
+            <p className="text-emerald-100/80 mt-3">
+              Informação que aproxima. Comunidade que protege.
             </p>
           </div>
-        )}
 
-        <div className="mt-8 bg-green-50 border border-green-200 rounded-3xl p-5 text-green-800">
-          📍 Região verificada — você está conectado à comunidade do Complexo do Chapadão e entorno.
-        </div>
+          <div className="bg-white/95 rounded-3xl shadow-xl border border-emerald-200 p-6 mb-8">
+            <h2 className="text-3xl font-bold text-emerald-950 mb-2">
+              Olá, comunidade! 👋
+            </h2>
 
-        <div className="mt-6 text-center text-xs text-gray-500">
-          Projeto acadêmico desenvolvido para a UNINTER — Tecnologia em Redes de Computadores
+            <p className="text-slate-600">
+              Escolha uma opção abaixo para acessar as informações da sua região.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              ['🚨', 'Alertas de segurança', 'Veja e compartilhe alertas importantes da nossa região.'],
+              ['🐾', 'Pets desaparecidos', 'Ajude a encontrar animais perdidos na comunidade.'],
+              ['👤', 'Pessoas desaparecidas', 'Compartilhe informações que podem ajudar.'],
+              ['☎️', 'Riscos e emergências', 'Informações sobre riscos e situações de emergência.'],
+              ['📢', 'Avisos comunitários', 'Informes, eventos e comunicados úteis para moradores.'],
+              ['✅', 'Confirmar informações', 'Ajude a manter nossa comunidade mais segura.'],
+            ].map(([icon, title, text]) => (
+              <div
+                key={title}
+                onClick={() => {
+                  if (title === 'Alertas de segurança') {
+                    carregarAlertas()
+                    setTela('alertas')
+                  }
+
+                  if (title === 'Pessoas desaparecidas') {
+                    carregarPessoas()
+                    setTela('pessoas')
+                  }
+                }}
+                className="bg-white/95 rounded-3xl p-6 shadow-xl border border-emerald-200 cursor-pointer hover:scale-[1.02] hover:shadow-2xl transition"
+              >
+                <div className="text-5xl mb-4">{icon}</div>
+                <h3 className="text-2xl font-bold text-emerald-950">{title}</h3>
+                <p className="text-slate-600 mt-2">{text}</p>
+              </div>
+            ))}
+          </div>
+
+          {alertas.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-2xl font-bold text-red-200 mb-4">
+                🚨 Alertas de segurança ativos
+              </h2>
+
+              <div className="space-y-4">
+                {alertas.slice(0, 3).map((alerta) => (
+                  <div
+                    key={alerta.id}
+                    className="bg-white/95 rounded-3xl shadow-xl border border-red-100 p-5"
+                  >
+                    <h3 className="text-xl font-bold text-red-700">
+                      🚨 {alerta.tipo_alerta} — {alerta.bairro}
+                    </h3>
+
+                    <p className="text-sm text-slate-500 mt-1">
+                      🕒 {formatarData(alerta.created_at)}
+                    </p>
+
+                    <p className="text-sm text-slate-500 mt-1">
+                      📍 {alerta.local_descricao}
+                    </p>
+
+                    <div className="flex gap-6 mt-3">
+                      <span className="font-bold text-emerald-700">
+                        👍 Verdade {alerta.verdade}
+                      </span>
+
+                      <span className="font-bold text-red-700">
+                        👎 Boato {alerta.boato}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-xs text-emerald-100 text-center mt-4">
+                Para validar ou criar novos alertas, acesse o menu Alertas de segurança.
+              </p>
+            </div>
+          )}
+
+          <div className="mt-8 bg-emerald-100/95 border border-emerald-300 rounded-3xl p-5 text-emerald-900 font-medium shadow">
+            📍 Região verificada — você está conectado à comunidade do Complexo do Chapadão e entorno.
+          </div>
+
+          <div className="mt-6 text-center text-xs text-emerald-100/70">
+            Projeto acadêmico desenvolvido para a UNINTER — Tecnologia em Redes de Computadores
+          </div>
         </div>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900">
       <section
         className="min-h-screen flex items-center justify-center p-6 bg-repeat"
         style={{
@@ -593,16 +623,16 @@ export default function Home() {
           backgroundSize: '600px',
         }}
       >
-        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-7">
-          <p className="text-sm font-semibold text-green-700 mb-2 text-center">
+        <div className="w-full max-w-md bg-white/95 rounded-3xl shadow-2xl border border-emerald-200 p-7">
+          <p className="text-sm font-bold text-emerald-700 mb-2 text-center uppercase tracking-widest">
             Comunidade hiperlocal
           </p>
 
-          <h1 className="text-4xl font-bold text-gray-900 text-center">
+          <h1 className="text-4xl font-extrabold text-emerald-950 text-center">
             Chapadão Conecta
           </h1>
 
-          <p className="text-gray-600 mt-3 mb-6 text-center">
+          <p className="text-slate-600 mt-3 mb-6 text-center">
             Informação que aproxima. Comunidade que protege.
           </p>
 
@@ -613,7 +643,7 @@ export default function Home() {
             placeholder="Digite seu email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-3 text-black bg-white"
+            className={inputClasse}
           />
 
           <input
@@ -621,7 +651,7 @@ export default function Home() {
             placeholder="Digite seu CEP"
             value={cep}
             onChange={(e) => setCep(e.target.value)}
-            className="w-full border border-gray-300 rounded-2xl p-4 mb-4 text-black bg-white"
+            className={inputClasse}
           />
 
           <button
@@ -678,12 +708,12 @@ export default function Home() {
                 alert('Sua região ainda não está disponível na plataforma.')
               }
             }}
-            className="w-full bg-green-700 text-white rounded-2xl p-4 font-bold"
+            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
           >
             Entrar na comunidade
           </button>
 
-          <p className="text-xs text-gray-500 text-center mt-5">
+          <p className="text-xs text-slate-500 text-center mt-5">
             Acesso disponível para moradores do Complexo do Chapadão e entorno.
           </p>
         </div>
