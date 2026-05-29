@@ -934,8 +934,7 @@ useEffect(() => {
 )}
 </div>
           <div className="mt-6 text-center text-xs text-emerald-100/70">
-            Atividade Extensionista II - Tecnologia aplicada à Inclusão Digital - Projeto.
-            Prof.º MARIANE GAVIOLI BERGAMINI
+            Atividade Extensionista II - Tecnologia aplicada à Inclusão Digital - Projeto - Prof.º MARIANE GAVIOLI BERGAMINI
             
           </div>
         </div>
