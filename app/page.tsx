@@ -24,6 +24,28 @@ export default function Home() {
   const [fotoPessoa, setFotoPessoa] = useState<File | null>(null)
   const [pessoas, setPessoas] = useState<any[]>([])
 
+  const [nomePet, setNomePet] = useState('')
+  const [tipoPet, setTipoPet] = useState('')
+  const [corPet, setCorPet] = useState('')
+  const [dataPet, setDataPet] = useState('')
+  const [localPet, setLocalPet] = useState('')
+  const [telefonePet, setTelefonePet] = useState('')
+  const [descricaoPet, setDescricaoPet] = useState('')
+  const [fotoPet, setFotoPet] = useState<File | null>(null)
+  const [pets, setPets] = useState<any[]>([])
+
+  const inputClasse =
+    'w-full border border-emerald-200 rounded-2xl p-4 mb-4 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600'
+
+  const labelClasse =
+    'block text-sm font-bold text-emerald-950 mb-2'
+
+  const cardClasse =
+    'bg-white/95 rounded-3xl shadow-xl border border-emerald-200 p-6'
+
+  const paginaClasse =
+    'min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 p-6'
+
   function limite24h() {
     const data = new Date()
     data.setHours(data.getHours() - 24)
@@ -102,6 +124,16 @@ export default function Home() {
       .order('created_at', { ascending: false })
 
     setPessoas(data || [])
+    return data || []
+  }
+
+  async function carregarPets() {
+    const { data } = await supabase
+      .from('pets_desaparecidos')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    setPets(data || [])
     return data || []
   }
 
@@ -233,17 +265,65 @@ export default function Home() {
     await carregarPessoas()
   }
 
-  const inputClasse =
-    'w-full border border-emerald-200 rounded-2xl p-4 mb-4 text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600'
+  async function publicarPet() {
+    if (
+      !nomePet ||
+      !tipoPet ||
+      !corPet ||
+      !dataPet ||
+      !localPet ||
+      !telefonePet ||
+      !descricaoPet ||
+      !fotoPet
+    ) {
+      alert('Preencha todos os campos do pet desaparecido.')
+      return
+    }
 
-  const labelClasse =
-    'block text-sm font-bold text-emerald-950 mb-2'
+    const nomeArquivo = `${Date.now()}-${fotoPet.name.replaceAll(' ', '_')}`
 
-  const cardClasse =
-    'bg-white/95 rounded-3xl shadow-xl border border-emerald-200 p-6'
+    const upload = await supabase.storage
+      .from('pets-desaparecidos')
+      .upload(nomeArquivo, fotoPet)
 
-  const paginaClasse =
-    'min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 p-6'
+    if (upload.error) {
+      alert('Erro ao enviar a foto do pet.')
+      return
+    }
+
+    const { data } = supabase.storage
+      .from('pets-desaparecidos')
+      .getPublicUrl(nomeArquivo)
+
+    await supabase.from('pets_desaparecidos').insert([
+      {
+        email,
+        bairro,
+        nome_pet: nomePet,
+        tipo_pet: tipoPet,
+        cor: corPet,
+        foto_url: data.publicUrl,
+        data_desaparecimento: dataPet,
+        local_desaparecimento: localPet,
+        descricao: descricaoPet,
+        telefone_contato: telefonePet,
+        status: 'DESAPARECIDO',
+      },
+    ])
+
+    alert('Pet desaparecido cadastrado.')
+
+    setNomePet('')
+    setTipoPet('')
+    setCorPet('')
+    setDataPet('')
+    setLocalPet('')
+    setTelefonePet('')
+    setDescricaoPet('')
+    setFotoPet(null)
+
+    await carregarPets()
+  }
 
   if (logado && tela === 'alertas') {
     return (
@@ -500,6 +580,164 @@ export default function Home() {
     )
   }
 
+  if (logado && tela === 'pets') {
+    return (
+      <main className={paginaClasse}>
+        <button
+          onClick={() => setTela('home')}
+          className="mb-6 text-emerald-100 font-bold"
+        >
+          ← Voltar
+        </button>
+
+        <h1 className="text-3xl font-extrabold text-white">
+          🐾 Pets desaparecidos
+        </h1>
+
+        <p className="text-emerald-100/80 mt-2 mb-6">
+          Cadastre e visualize pets desaparecidos na comunidade.
+        </p>
+
+        <div className={`${cardClasse} mb-8`}>
+          <label className={labelClasse}>Foto do pet</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFotoPet(e.target.files?.[0] || null)}
+            className={inputClasse}
+          />
+
+          <label className={labelClasse}>Nome do pet</label>
+          <input
+            type="text"
+            value={nomePet}
+            onChange={(e) => setNomePet(e.target.value)}
+            className={inputClasse}
+          />
+
+          <label className={labelClasse}>Tipo do pet</label>
+          <select
+            value={tipoPet}
+            onChange={(e) => setTipoPet(e.target.value)}
+            className={inputClasse}
+          >
+            <option value="">Selecione</option>
+            <option value="Cachorro">Cachorro</option>
+            <option value="Gato">Gato</option>
+            <option value="Pássaro">Pássaro</option>
+            <option value="Outro">Outro</option>
+          </select>
+
+          <label className={labelClasse}>Cor</label>
+          <input
+            type="text"
+            value={corPet}
+            onChange={(e) => setCorPet(e.target.value)}
+            className={inputClasse}
+          />
+
+          <label className={labelClasse}>Data do desaparecimento</label>
+          <input
+            type="date"
+            value={dataPet}
+            onChange={(e) => setDataPet(e.target.value)}
+            className={inputClasse}
+          />
+
+          <label className={labelClasse}>Último local visto</label>
+          <input
+            type="text"
+            value={localPet}
+            onChange={(e) => setLocalPet(e.target.value)}
+            className={inputClasse}
+          />
+
+          <label className={labelClasse}>Telefone para contato</label>
+          <input
+            type="text"
+            value={telefonePet}
+            onChange={(e) => setTelefonePet(e.target.value)}
+            className={inputClasse}
+          />
+
+          <label className={labelClasse}>Descrição</label>
+          <textarea
+            value={descricaoPet}
+            onChange={(e) => setDescricaoPet(e.target.value)}
+            className={`${inputClasse} min-h-32`}
+          />
+
+          <button
+            onClick={publicarPet}
+            className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
+          >
+            Cadastrar pet desaparecido
+          </button>
+        </div>
+
+        <div className="space-y-6">
+          {pets.length === 0 && (
+            <p className="text-emerald-100 text-center">
+              Ainda não há pets desaparecidos cadastrados.
+            </p>
+          )}
+
+          {pets.map((pet) => (
+            <div
+              key={pet.id}
+              className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-emerald-200 overflow-hidden"
+            >
+              {pet.foto_url && (
+                <img
+                  src={pet.foto_url}
+                  alt={pet.nome_pet}
+                  className="w-full h-80 object-cover"
+                />
+              )}
+
+              <div className="p-5">
+                <h2 className="text-2xl font-bold text-slate-900">
+                  🐾 {pet.nome_pet}
+                </h2>
+
+                <p className="text-slate-600 mt-1">
+                  {pet.tipo_pet} • {pet.cor}
+                </p>
+
+                <p className="text-sm text-slate-500 mt-3">
+                  🕒 Desaparecido desde:{' '}
+                  {new Date(pet.data_desaparecimento).toLocaleDateString('pt-BR')}
+                </p>
+
+                <p className="text-sm text-slate-500 mt-1">
+                  📍 Último local visto: {pet.local_desaparecimento}
+                </p>
+
+                <p className="text-sm text-slate-500 mt-1">
+                  📞 Contato: {pet.telefone_contato}
+                </p>
+
+                <p className="text-slate-700 mt-4">{pet.descricao}</p>
+
+                <p
+                  className={`mt-4 inline-block px-4 py-2 rounded-full text-sm font-bold ${
+                    pet.status === 'ENCONTRADO'
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-orange-100 text-orange-700'
+                  }`}
+                >
+                  {pet.status === 'ENCONTRADO'
+                    ? '🟢 ENCONTRADO'
+                    : '🟠 DESAPARECIDO'}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+    )
+  }
+
   if (logado) {
     return (
       <main className={paginaClasse}>
@@ -549,6 +787,11 @@ export default function Home() {
                     carregarPessoas()
                     setTela('pessoas')
                   }
+
+                  if (title === 'Pets desaparecidos') {
+                    carregarPets()
+                    setTela('pets')
+                  }
                 }}
                 className="bg-white/95 rounded-3xl p-6 shadow-xl border border-emerald-200 cursor-pointer hover:scale-[1.02] hover:shadow-2xl transition"
               >
@@ -558,49 +801,6 @@ export default function Home() {
               </div>
             ))}
           </div>
-
-          {alertas.length > 0 && (
-            <div className="mt-10">
-              <h2 className="text-2xl font-bold text-red-200 mb-4">
-                🚨 Alertas de segurança ativos
-              </h2>
-
-              <div className="space-y-4">
-                {alertas.slice(0, 3).map((alerta) => (
-                  <div
-                    key={alerta.id}
-                    className="bg-white/95 rounded-3xl shadow-xl border border-red-100 p-5"
-                  >
-                    <h3 className="text-xl font-bold text-red-700">
-                      🚨 {alerta.tipo_alerta} — {alerta.bairro}
-                    </h3>
-
-                    <p className="text-sm text-slate-500 mt-1">
-                      🕒 {formatarData(alerta.created_at)}
-                    </p>
-
-                    <p className="text-sm text-slate-500 mt-1">
-                      📍 {alerta.local_descricao}
-                    </p>
-
-                    <div className="flex gap-6 mt-3">
-                      <span className="font-bold text-emerald-700">
-                        👍 Verdade {alerta.verdade}
-                      </span>
-
-                      <span className="font-bold text-red-700">
-                        👎 Boato {alerta.boato}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-xs text-emerald-100 text-center mt-4">
-                Para validar ou criar novos alertas, acesse o menu Alertas de segurança.
-              </p>
-            </div>
-          )}
 
           <div className="mt-8 bg-emerald-100/95 border border-emerald-300 rounded-3xl p-5 text-emerald-900 font-medium shadow">
             📍 Região verificada — você está conectado à comunidade do Complexo do Chapadão e entorno.
@@ -698,6 +898,7 @@ export default function Home() {
 
                 const alertasCarregados = await carregarAlertas()
                 await carregarPessoas()
+                await carregarPets()
 
                 if (alertasCarregados.length > 0) {
                   tocarAlarme()
