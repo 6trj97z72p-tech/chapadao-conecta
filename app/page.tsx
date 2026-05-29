@@ -808,7 +808,7 @@ useEffect(() => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-sm font-bold text-emerald-300 uppercase tracking-widest">
-              Comunidade hiperlocal
+              Comunidade Local
             </p>
 
             <h1 className="text-5xl font-extrabold text-white mt-2">
