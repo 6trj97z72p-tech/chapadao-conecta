@@ -929,7 +929,7 @@ export default function Home() {
 
                 setLogado(true)
               } else {
-                alert('Sua região ainda não está disponível na plataforma.')
+                alert('APENAS DISPONIVEL PARA A REGIAO DO CHAPADAO.')
               }
             }}
             className="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl p-4 font-bold shadow-lg transition"
