@@ -916,7 +916,7 @@ useEffect(() => {
     />
 
     <h2 className="text-xl md:text-3xl font-bold">
-      Centro Universitário Internacional.
+      Centro Universitário Internacional
     </h2>
   </div>
 ) : (
