@@ -150,14 +150,17 @@ export default function Home() {
   }
 
   async function carregarRiscos() {
-    const { data } = await supabase
-      .from('riscos_emergencias')
-      .select('*')
-      .order('created_at', { ascending: false })
+  const agora = new Date().toISOString()
 
-    setRiscos(data || [])
-    return data || []
-  }
+  const { data } = await supabase
+    .from('riscos_emergencias')
+    .select('*')
+    .or(`expira_em.is.null,expira_em.gt.${agora}`)
+    .order('created_at', { ascending: false })
+
+  setRiscos(data || [])
+  return data || []
+}
 
   async function publicarAlerta() {
     if (!tipoAlerta || !localDescricao || !descricao) {
