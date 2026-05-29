@@ -784,9 +784,9 @@ export default function Home() {
                 key={title}
                 onClick={() => {
                   if (title === 'Alertas de segurança') {
-                    carregarAlertas(bairro)
-                    setTela('alertas')
-                  }
+  carregarAlertas()
+  setTela('alertas')
+}
 
                   if (title === 'Pessoas desaparecidas') {
                     carregarPessoas()
