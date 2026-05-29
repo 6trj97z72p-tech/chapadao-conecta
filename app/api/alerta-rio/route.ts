@@ -25,14 +25,20 @@ export async function GET(request: Request) {
     const html = await resposta.text()
     const texto = html.toLowerCase()
 
-    const existeAlertaReal =
-      texto.includes('estágio de alerta') ||
-      texto.includes('estagio de alerta') ||
-      texto.includes('chuva forte') ||
-      texto.includes('alerta de chuva') ||
-      texto.includes('tempestade')
+    const alertaCritico =
+  texto.includes('estágio de alerta') ||
+  texto.includes('estagio de alerta') ||
+  texto.includes('chuva forte') ||
+  texto.includes('tempestade')
 
-    if (!existeAlertaReal && !force) {
+const alertaAtencao =
+  texto.includes('chuva') ||
+  texto.includes('pancadas') ||
+  texto.includes('instabilidade') ||
+  texto.includes('mudança do tempo') ||
+  texto.includes('mudanca do tempo')
+
+    if (!alertaCritico && !alertaAtencao && !force) {
       return NextResponse.json({
         ok: true,
         alerta: false,
@@ -50,6 +56,12 @@ export async function GET(request: Request) {
 
     const resultados = []
 
+    const nivel = force
+  ? 'CRITICO'
+  : alertaCritico
+  ? 'CRITICO'
+  : 'ATENCAO'
+    
     for (const bairro of bairros) {
       const { data: existente } = await supabase
         .from('riscos_emergencias')
@@ -70,6 +82,7 @@ export async function GET(request: Request) {
           email: 'oficial@alertario.rio',
           bairro,
           tipo_emergencia: 'Alerta de Tempestade',
+          nivel,
           local_descricao: 'Região atendida pelo Chapadão Conecta',
           descricao: force
             ? 'Alerta oficial de teste gerado manualmente para validação da integração.'
