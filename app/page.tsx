@@ -842,7 +842,7 @@ export default function Home() {
       <section
         className="min-h-screen flex items-center justify-center p-6 bg-repeat"
         style={{
-          backgroundImage: "url('/images/fundo.png')",
+          backgroundImage: "url('/images/fundo5.png')",
           backgroundSize: '600px',
         }}
       >
