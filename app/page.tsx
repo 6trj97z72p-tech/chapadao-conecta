@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
 
 export default function Home() {
@@ -8,6 +8,7 @@ export default function Home() {
   const [cep, setCep] = useState('')
   const [bairro, setBairro] = useState('')
   const [logado, setLogado] = useState(false)
+  const [bannerIndex, setBannerIndex] = useState(0)
   const [tela, setTela] = useState('home')
 
   const [tipoAlerta, setTipoAlerta] = useState('')
@@ -52,6 +53,16 @@ export default function Home() {
   const paginaClasse =
     'min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 p-6'
 
+  const [bannerIndex, setBannerIndex] = useState(0)
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setBannerIndex((prev) => (prev + 1) % 2)
+  }, 5000)
+
+  return () => clearInterval(interval)
+}, [])
+  
   function limite24h() {
     const data = new Date()
     data.setHours(data.getHours() - 24)
@@ -812,15 +823,30 @@ export default function Home() {
       'linear-gradient(90deg, #1c1b4f 0%, #2d2bb7 45%, #3b3b66 100%)',
   }}
 >
-  <div className="flex items-center gap-5">
+  <div className="flex items-center gap-6">
 
     <img
-      src="/images/uninter-logo.png"
+      src="/images/logo uninter.png"
       alt="UNINTER"
-      className="h-20 object-contain rounded-lg"
+      className="h-24 object-contain rounded-lg"
     />
 
-    <div>
+    <div className="flex-1 text-center">
+
+      {bannerIndex === 0 ? (
+        <h2 className="text-2xl md:text-4xl font-bold">
+          A melhor educação a distância do Brasil agora também em diversos países.
+        </h2>
+      ) : (
+        <h2 className="text-2xl md:text-4xl font-bold">
+          Projeto Acadêmico desenvolvido para a Universidade Internacional UNINTER – Tecnologia em Redes de Computadores
+        </h2>
+      )}
+
+    </div>
+
+  </div>
+</div>
       <p className="text-2xl font-bold">
         A melhor educação a distância do Brasil agora também em diversos países.
       </p>
