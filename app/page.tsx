@@ -916,7 +916,7 @@ useEffect(() => {
     />
 
     <h2 className="text-xl md:text-3xl font-bold">
-      Centro Universitário Internacional
+      Centro Universitário Internacional.
     </h2>
   </div>
 ) : (
@@ -934,7 +934,9 @@ useEffect(() => {
 )}
 </div>
           <div className="mt-6 text-center text-xs text-emerald-100/70">
-            Centro Universitário Internacional.
+            Atividade Extensionista II - Tecnologia aplicada à Inclusão Digital - Projeto.
+            Prof.º MARIANE GAVIOLI BERGAMINI
+            
           </div>
         </div>
       </main>
