@@ -10,6 +10,7 @@ export default function Home() {
   const [logado, setLogado] = useState(false)
   const [bannerIndex, setBannerIndex] = useState(0)
   const [tela, setTela] = useState('home')
+  const [lembrarDados, setLembrarDados] = useState(false)
 
   const [tipoAlerta, setTipoAlerta] = useState('')
   const [localDescricao, setLocalDescricao] = useState('')
@@ -54,6 +55,18 @@ export default function Home() {
   'min-h-screen bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-900 p-6'
 
 useEffect(() => {
+  const emailSalvo = localStorage.getItem('chapadao_email')
+  const cepSalvo = localStorage.getItem('chapadao_cep')
+
+  if (emailSalvo) {
+    setEmail(emailSalvo)
+    setLembrarDados(true)
+  }
+
+  if (cepSalvo) {
+    setCep(cepSalvo)
+  }
+
   const interval = setInterval(() => {
     setBannerIndex((prev) => (prev + 1) % 2)
   }, 5000)
@@ -987,6 +1000,15 @@ useEffect(() => {
             className={inputClasse}
           />
 
+          <label className="flex items-center gap-2 mt-3 text-sm text-slate-600">
+  <input
+    type="checkbox"
+    checked={lembrarDados}
+    onChange={(e) => setLembrarDados(e.target.checked)}
+  />
+  Lembrar meu email e CEP neste dispositivo
+</label>
+
           <button
             onClick={async () => {
               const emailLimpo = email.trim()
@@ -1026,6 +1048,13 @@ useEffect(() => {
               ])
 
               if (permitido) {
+                if (lembrarDados) {
+  localStorage.setItem('chapadao_email', emailLimpo)
+  localStorage.setItem('chapadao_cep', cep)
+} else {
+  localStorage.removeItem('chapadao_email')
+  localStorage.removeItem('chapadao_cep')
+}
                 setEmail(emailLimpo)
                 setBairro(data.bairro)
 
