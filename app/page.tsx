@@ -462,15 +462,19 @@ useEffect(() => {
           </button>
         </div>
 
-        <div className="space-y-4">
-          {alertas.length === 0 && (
-            <p className="text-emerald-100 text-center">
-              Ainda não há alertas cadastrados nas últimas 24 horas.
-            </p>
-          )}
+        <div className="grid gap-6">
+  {alertas.length === 0 && (
+    <p className="text-emerald-100 text-center">
+      Ainda não há alertas cadastrados nas últimas 24 horas.
+    </p>
+  )}
 
-          {alertas.map((alerta) => (
-            <div key={alerta.id} className="bg-white/95 rounded-3xl shadow-xl border border-red-100 p-5">
+  {alertas.map((alerta) => (
+    <div
+      key={alerta.id}
+      className="max-w-md mx-auto bg-white/95 rounded-3xl shadow-xl border border-red-100 overflow-hidden"
+    >
+      <div className="p-5">
               <h2 className="text-2xl font-bold text-red-700">
                 🚨 {alerta.tipo_alerta} — {alerta.bairro}
               </h2>
